@@ -1,0 +1,11 @@
+[
+  {
+    "id": "ACT001",
+    "timestamp": "2024-12-30T11:00:00Z",
+    "userId": "U001",
+    "userRole": "admin",
+    "action": "SYSTEM_INITIALIZED",
+    "details": "System setup completed",
+    "ipAddress": "127.0.0.1"
+  }
+]
