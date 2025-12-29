@@ -1,25 +1,8 @@
-// Simplified auth.js for your dashboard.html
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Dashboard loaded');
-    
-    // Set current date
-    const now = new Date();
-    const dateElement = document.getElementById('currentDate');
-    if (dateElement) {
-        dateElement.textContent = now.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    }
-    
-    // Check if already logged in
-    checkLoginStatus();
-});
+// Simple Dashboard Authentication
+let selectedRole = 'admin';
 
 function selectRole(role) {
-    console.log('Selecting role:', role);
+    selectedRole = role;
     
     // Remove active class from all role options
     document.querySelectorAll('.role-option').forEach(option => {
@@ -29,35 +12,31 @@ function selectRole(role) {
     // Add active class to selected role
     event.target.closest('.role-option').classList.add('active');
     
-    // Store selected role
-    localStorage.setItem('selectedRole', role);
+    console.log('Selected role:', role);
 }
 
 function login() {
-    console.log('Login attempt');
-    
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
-    const roleButtons = document.querySelectorAll('.role-option.active');
+    const errorElement = document.getElementById('loginError');
     
-    if (roleButtons.length === 0) {
-        showError('Please select a role');
+    console.log('Login attempt:', { username, password, selectedRole });
+    
+    // Validate inputs
+    if (!username || !password) {
+        showError('Please enter both username and password');
         return;
     }
     
-    const selectedRole = roleButtons[0].querySelector('.role-name').textContent.toLowerCase();
-    
-    console.log('Login details:', { username, password, selectedRole });
-    
     // Demo credentials
     const validLogins = [
-        { user: 'admin', pass: 'admin123', role: 'admin', name: 'System Admin' },
+        { user: 'admin', pass: 'admin123', role: 'admin', name: 'System Administrator' },
         { user: 'partner', pass: 'partner123', role: 'partner', name: 'Field Partner' },
-        { user: 'account', pass: 'account123', role: 'accountant', name: 'Accountant' },
-        { user: 'support', pass: 'support123', role: 'support', name: 'Support Agent' }
+        { user: 'account', pass: 'account123', role: 'accountant', name: 'Finance Accountant' },
+        { user: 'support', pass: 'support123', role: 'support', name: 'Customer Support' }
     ];
     
-    // Find matching login
+    // Check credentials
     const isValid = validLogins.find(login => 
         login.user === username && 
         login.pass === password && 
@@ -65,20 +44,23 @@ function login() {
     );
     
     if (isValid) {
-        // Store user info
-        const userData = {
+        // Hide error
+        if (errorElement) {
+            errorElement.style.display = 'none';
+        }
+        
+        // Store user in localStorage
+        localStorage.setItem('nkumbise_user', JSON.stringify({
             username: username,
             role: selectedRole,
             name: isValid.name,
             loginTime: new Date().toISOString()
-        };
-        
-        localStorage.setItem('nkumbise_user', JSON.stringify(userData));
+        }));
         
         // Show dashboard
-        showDashboard(userData);
+        showDashboard(isValid);
     } else {
-        showError('Invalid login. Try: admin / admin123 / Admin role');
+        showError('Invalid login. Try: admin / admin123 with Admin role selected');
     }
 }
 
@@ -111,10 +93,22 @@ function showDashboard(user) {
         avatar.textContent = user.name.charAt(0);
     }
     
+    // Set current date
+    const now = new Date();
+    const dateElement = document.getElementById('currentDate');
+    if (dateElement) {
+        dateElement.textContent = now.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+    
     // Show role-specific views
     showRoleView(user.role);
     
-    // Load initial data
+    // Load dashboard data
     loadDashboardData(user.role);
 }
 
@@ -273,8 +267,8 @@ function showView(viewName) {
         item.classList.remove('active');
     });
     
-    // Add active class to clicked item (if we can find it)
-    event.target.closest('.nav-item')?.classList.add('active');
+    // Add active class to clicked item
+    event.target.closest('.nav-item').classList.add('active');
     
     // Update main content based on view
     const mainContent = document.getElementById('mainContent');
@@ -294,12 +288,12 @@ function showView(viewName) {
         
         mainTitle.textContent = viewTitles[viewName] || viewName;
         
-        // For now, just show a message
+        // Show view content
         mainContent.innerHTML = `
             <div style="text-align: center; padding: 3rem;">
                 <i class="fas fa-cogs" style="font-size: 3rem; color: #e0e0e0; margin-bottom: 1rem;"></i>
                 <h3>${viewTitles[viewName] || viewName}</h3>
-                <p>This view is under development. In a full system, this would show ${viewName} data.</p>
+                <p>This view is under development. In a full system, this would show detailed ${viewName} information.</p>
                 <button class="action-btn" onclick="showView('overview')" style="margin-top: 1rem;">
                     <i class="fas fa-arrow-left"></i> Back to Overview
                 </button>
@@ -308,7 +302,17 @@ function showView(viewName) {
     }
 }
 
-function checkLoginStatus() {
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('nkumbise_user');
+        location.reload();
+    }
+}
+
+// Check if user is already logged in when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard page loaded');
+    
     const userData = localStorage.getItem('nkumbise_user');
     
     if (userData) {
@@ -330,17 +334,10 @@ function checkLoginStatus() {
             localStorage.removeItem('nkumbise_user');
         }
     }
-}
-
-function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('nkumbise_user');
-        location.reload();
-    }
-}
-
-// Make functions available globally
-window.selectRole = selectRole;
-window.login = login;
-window.showView = showView;
-window.logout = logout;
+    
+    // Auto-fill demo credentials for testing
+    setTimeout(() => {
+        document.getElementById('username').value = 'admin';
+        document.getElementById('password').value = 'admin123';
+    }, 500);
+});
