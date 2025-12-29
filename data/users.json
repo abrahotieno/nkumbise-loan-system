@@ -1,0 +1,41 @@
+[
+  {
+    "id": "U001",
+    "username": "admin",
+    "password": "admin123",
+    "role": "admin",
+    "name": "System Administrator",
+    "createdAt": "2024-12-29",
+    "lastLogin": null,
+    "mustChangePassword": false
+  },
+  {
+    "id": "U002",
+    "username": "partner",
+    "password": "partner123",
+    "role": "partner",
+    "name": "Tanzania Partner",
+    "createdAt": "2024-12-29",
+    "lastLogin": null,
+    "mustChangePassword": false
+  },
+  {
+    "id": "U003",
+    "username": "account",
+    "password": "account123",
+    "role": "account",
+    "name": "Finance Accountant",
+    "createdAt": "2024-12-29",
+    "lastLogin": null,
+    "mustChangePassword": false
+  },
+  {
+    "id": "username": "support",
+    "password": "support123",
+    "role": "support",
+    "name": "Customer Support",
+    "createdAt": "2024-12-29",
+    "lastLogin": null,
+    "mustChangePassword": false
+  }
+]
