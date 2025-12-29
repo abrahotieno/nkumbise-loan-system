@@ -23,14 +23,15 @@
     "id": "U003",
     "username": "account",
     "password": "account123",
-    "role": "account",
+    "role": "accountant",
     "name": "Finance Accountant",
     "createdAt": "2024-12-29",
     "lastLogin": null,
     "mustChangePassword": false
   },
   {
-    "id": "username": "support",
+    "id": "U004",
+    "username": "support",
     "password": "support123",
     "role": "support",
     "name": "Customer Support",
