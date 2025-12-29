@@ -1,284 +1,346 @@
-// Authentication System for Nkumbise Investment Dashboard
+// Simplified auth.js for your dashboard.html
 document.addEventListener('DOMContentLoaded', function() {
-    initAuthSystem();
+    console.log('Dashboard loaded');
+    
+    // Set current date
+    const now = new Date();
+    const dateElement = document.getElementById('currentDate');
+    if (dateElement) {
+        dateElement.textContent = now.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+    
+    // Check if already logged in
+    checkLoginStatus();
 });
 
-function initAuthSystem() {
-    // Check if user is already logged in
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-        showDashboard(currentUser);
-        return;
-    }
-
-    // Setup login form
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
+function selectRole(role) {
+    console.log('Selecting role:', role);
+    
+    // Remove active class from all role options
+    document.querySelectorAll('.role-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    
+    // Add active class to selected role
+    event.target.closest('.role-option').classList.add('active');
+    
+    // Store selected role
+    localStorage.setItem('selectedRole', role);
 }
 
-async function handleLogin(event) {
-    event.preventDefault();
+function login() {
+    console.log('Login attempt');
     
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
-    const role = document.getElementById('role').value;
+    const roleButtons = document.querySelectorAll('.role-option.active');
     
-    // Show loading
-    const submitBtn = loginForm.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
-    submitBtn.disabled = true;
-    
-    try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Authenticate user (in production, this would validate against your GitHub data)
-        const user = await authenticateUser(username, password, role);
-        
-        if (user) {
-            // Store user session
-            storeUserSession(user);
-            
-            // Show dashboard
-            showDashboard(user);
-        } else {
-            alert('Invalid credentials. Please check your username, password, and role.');
-        }
-        
-    } catch (error) {
-        console.error('Login error:', error);
-        alert('Login failed. Please try again.');
-    } finally {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
+    if (roleButtons.length === 0) {
+        showError('Please select a role');
+        return;
     }
-}
-
-async function authenticateUser(username, password, role) {
-    // This is demo authentication - in production, fetch from users.json
-    const demoUsers = [
-        { id: 'U001', username: 'admin', password: 'admin123', role: 'admin', name: 'System Administrator', lastLogin: null },
-        { id: 'U002', username: 'partner', password: 'partner123', role: 'partner', name: 'Tanzania Partner', lastLogin: null },
-        { id: 'U003', username: 'account', password: 'account123', role: 'account', name: 'Finance Accountant', lastLogin: null },
-        { id: 'U004', username: 'support', password: 'support123', role: 'support', name: 'Customer Support', lastLogin: null }
+    
+    const selectedRole = roleButtons[0].querySelector('.role-name').textContent.toLowerCase();
+    
+    console.log('Login details:', { username, password, selectedRole });
+    
+    // Demo credentials
+    const validLogins = [
+        { user: 'admin', pass: 'admin123', role: 'admin', name: 'System Admin' },
+        { user: 'partner', pass: 'partner123', role: 'partner', name: 'Field Partner' },
+        { user: 'account', pass: 'account123', role: 'accountant', name: 'Accountant' },
+        { user: 'support', pass: 'support123', role: 'support', name: 'Support Agent' }
     ];
     
-    // Find matching user
-    const user = demoUsers.find(u => 
-        u.username === username && 
-        u.password === password && 
-        u.role === role
+    // Find matching login
+    const isValid = validLogins.find(login => 
+        login.user === username && 
+        login.pass === password && 
+        login.role === selectedRole
     );
     
-    if (user) {
-        // Update last login
-        user.lastLogin = new Date().toISOString();
-        return user;
+    if (isValid) {
+        // Store user info
+        const userData = {
+            username: username,
+            role: selectedRole,
+            name: isValid.name,
+            loginTime: new Date().toISOString()
+        };
+        
+        localStorage.setItem('nkumbise_user', JSON.stringify(userData));
+        
+        // Show dashboard
+        showDashboard(userData);
+    } else {
+        showError('Invalid login. Try: admin / admin123 / Admin role');
     }
-    
-    return null;
 }
 
-function storeUserSession(user) {
-    // Store in localStorage
-    const sessionData = {
-        user: user,
-        timestamp: new Date().getTime(),
-        expires: new Date().getTime() + (8 * 60 * 60 * 1000) // 8 hours
-    };
-    
-    localStorage.setItem('nkumbise_session', JSON.stringify(sessionData));
-}
-
-function getCurrentUser() {
-    const sessionData = localStorage.getItem('nkumbise_session');
-    
-    if (!sessionData) return null;
-    
-    try {
-        const session = JSON.parse(sessionData);
-        
-        // Check if session is expired
-        if (new Date().getTime() > session.expires) {
-            localStorage.removeItem('nkumbise_session');
-            return null;
-        }
-        
-        return session.user;
-    } catch (error) {
-        console.error('Session error:', error);
-        return null;
+function showError(message) {
+    const errorElement = document.getElementById('loginError');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    } else {
+        alert(message);
     }
 }
 
 function showDashboard(user) {
-    // Hide login, show dashboard
+    console.log('Showing dashboard for:', user.name);
+    
+    // Hide login screen
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('dashboardContainer').style.display = 'grid';
+    
+    // Show dashboard
+    document.getElementById('dashboardContainer').style.display = 'block';
     
     // Update user info
-    document.getElementById('currentUserName').textContent = user.name;
-    document.getElementById('currentUserRole').textContent = 
-        user.role.charAt(0).toUpperCase() + user.role.slice(1);
+    document.getElementById('userName').textContent = user.name;
+    document.getElementById('userRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
     
-    // Update dashboard title
-    document.getElementById('dashboardTitle').querySelector('h2').textContent = 
-        `${user.name}'s Dashboard`;
-    
-    // Show appropriate menu based on role
-    showRoleMenu(user.role);
-    
-    // Initialize dashboard
-    if (typeof initDashboard === 'function') {
-        initDashboard(user);
+    // Show first letter of name in avatar
+    const avatar = document.getElementById('userAvatar');
+    if (avatar) {
+        avatar.textContent = user.name.charAt(0);
     }
     
-    // Show password change alert if needed
-    showPasswordChangeAlert(user);
+    // Show role-specific views
+    showRoleView(user.role);
+    
+    // Load initial data
+    loadDashboardData(user.role);
 }
 
-function showRoleMenu(role) {
-    // Hide all menus first
-    document.querySelectorAll('.menu-section').forEach(section => {
-        if (!section.querySelector('.fa-cogs')) { // Don't hide common section
-            section.style.display = 'none';
-        }
+function showRoleView(role) {
+    // Hide all role views
+    document.querySelectorAll('.admin-view, .partner-view, .accountant-view, .support-view').forEach(view => {
+        view.classList.remove('view-active');
     });
     
-    // Show role-specific menu
-    const roleMenu = document.getElementById(`${role}Menu`);
-    if (roleMenu) {
-        roleMenu.style.display = 'block';
+    // Show the correct role view
+    const roleView = document.querySelector(`.${role}-view`);
+    if (roleView) {
+        roleView.classList.add('view-active');
     }
     
-    // Set first item as active
-    const firstMenuItem = roleMenu?.querySelector('.menu-item');
-    if (firstMenuItem) {
-        firstMenuItem.click();
+    // Update dashboard title based on role
+    const roleTitles = {
+        'admin': 'Administrator Dashboard',
+        'partner': 'Partner Dashboard',
+        'accountant': 'Accountant Dashboard',
+        'support': 'Support Dashboard'
+    };
+    
+    const title = document.getElementById('dashboardTitle');
+    if (title) {
+        title.textContent = roleTitles[role] || 'Dashboard';
     }
 }
 
-function showPasswordChangeAlert(user) {
-    // Demo: Show alert for admin user
-    if (user.username === 'admin') {
-        document.getElementById('passwordChangeAlert').style.display = 'flex';
-    }
+function loadDashboardData(role) {
+    console.log('Loading data for role:', role);
+    
+    // Sample data
+    const stats = {
+        totalLoans: 48,
+        totalAmount: 75000,
+        activeLoans: 12,
+        totalProfit: 22500
+    };
+    
+    // Update stats
+    document.getElementById('statTotalLoans').textContent = stats.totalLoans;
+    document.getElementById('statTotalAmount').textContent = '$' + stats.totalAmount.toLocaleString();
+    document.getElementById('statActiveLoans').textContent = stats.activeLoans;
+    document.getElementById('statTotalProfit').textContent = '$' + stats.totalProfit.toLocaleString();
+    
+    // Load sample loans
+    loadSampleLoans();
+    
+    // Load sample activities
+    loadSampleActivities();
+    
+    // Load quick actions based on role
+    loadQuickActions(role);
 }
 
-function showNotifications() {
-    document.getElementById('notificationsPanel').classList.add('show');
-    loadNotifications();
-}
-
-function hideNotifications() {
-    document.getElementById('notificationsPanel').classList.remove('show');
-}
-
-function loadNotifications() {
-    const notifications = [
-        {
-            id: 1,
-            title: 'New Loan Application',
-            message: 'John Doe applied for $1,500 loan',
-            time: '10 minutes ago',
-            icon: 'fa-file-alt',
-            read: false
-        },
-        {
-            id: 2,
-            title: 'Payment Received',
-            message: 'Maria Kato made payment of $65',
-            time: '1 hour ago',
-            icon: 'fa-money-check',
-            read: false
-        },
-        {
-            id: 3,
-            title: 'System Update',
-            message: 'Dashboard updated to version 1.2',
-            time: '2 hours ago',
-            icon: 'fa-sync',
-            read: true
-        }
+function loadSampleLoans() {
+    const loans = [
+        { id: 'L20241230001', customer: 'John Doe', amount: 1500, status: 'active', dueDate: '2025-01-30' },
+        { id: 'L20241230002', customer: 'Maria Kato', amount: 2500, status: 'active', dueDate: '2025-02-28' },
+        { id: 'L20241230003', customer: 'Robert Kim', amount: 1000, status: 'overdue', dueDate: '2024-12-25' },
+        { id: 'L20241230004', customer: 'Sarah Johnson', amount: 3000, status: 'completed', dueDate: '2024-12-15' }
     ];
     
-    const container = document.getElementById('notificationsList');
-    container.innerHTML = notifications.map(notif => `
-        <div class="notification-item ${notif.read ? '' : 'unread'}">
-            <div class="notification-icon">
-                <i class="fas ${notif.icon}"></i>
-            </div>
-            <div class="notification-content">
-                <div class="notification-title">${notif.title}</div>
-                <div class="notification-message">${notif.message}</div>
-                <div class="notification-time">${notif.time}</div>
-            </div>
-        </div>
-    `).join('');
+    const tableBody = document.getElementById('loansTable');
+    if (tableBody) {
+        tableBody.innerHTML = loans.map(loan => `
+            <tr>
+                <td>${loan.id}</td>
+                <td>${loan.customer}</td>
+                <td>$${loan.amount}</td>
+                <td>
+                    <span class="status-badge ${
+                        loan.status === 'active' ? 'badge-success' :
+                        loan.status === 'overdue' ? 'badge-danger' :
+                        'badge-info'
+                    }">
+                        ${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
+                    </span>
+                </td>
+                <td>${loan.dueDate}</td>
+            </tr>
+        `).join('');
+    }
+}
+
+function loadSampleActivities() {
+    const activities = [
+        { text: 'New loan application submitted by John Doe', time: '10 minutes ago', icon: 'fa-file-alt' },
+        { text: 'Payment of $65 received from Maria Kato', time: '1 hour ago', icon: 'fa-money-check' },
+        { text: 'Loan #L20241230003 marked as overdue', time: '2 hours ago', icon: 'fa-exclamation-triangle' },
+        { text: 'New partner account created', time: '3 hours ago', icon: 'fa-user-plus' },
+        { text: 'System backup completed', time: '5 hours ago', icon: 'fa-database' }
+    ];
     
-    // Update notification count
-    const unreadCount = notifications.filter(n => !n.read).length;
-    document.getElementById('notificationCount').textContent = unreadCount;
+    const activityList = document.getElementById('activityList');
+    if (activityList) {
+        activityList.innerHTML = activities.map(activity => `
+            <li class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas ${activity.icon}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">${activity.text}</div>
+                    <div class="activity-time">${activity.time}</div>
+                </div>
+            </li>
+        `).join('');
+    }
 }
 
-function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('show');
+function loadQuickActions(role) {
+    const actions = {
+        'admin': [
+            { text: 'Add New User', icon: 'fa-user-plus', view: 'userManagement' },
+            { text: 'View Reports', icon: 'fa-chart-line', view: 'investorReports' },
+            { text: 'System Settings', icon: 'fa-cog', view: 'systemLogs' },
+            { text: 'Export Data', icon: 'fa-download', view: 'exportData' }
+        ],
+        'partner': [
+            { text: 'Add New Loan', icon: 'fa-plus-circle', view: 'addLoan' },
+            { text: 'Record Payment', icon: 'fa-money-check-alt', view: 'repayments' },
+            { text: 'My Customers', icon: 'fa-users', view: 'myLoans' },
+            { text: 'Field Visit', icon: 'fa-map-marker-alt', view: 'partnerReports' }
+        ],
+        'accountant': [
+            { text: 'Profit Report', icon: 'fa-chart-pie', view: 'profitDistribution' },
+            { text: 'Export Data', icon: 'fa-file-export', view: 'exportData' },
+            { text: 'Audit Log', icon: 'fa-clipboard-check', view: 'auditLog' },
+            { text: 'Bank Recon', icon: 'fa-university', view: 'financialReports' }
+        ],
+        'support': [
+            { text: 'New Applications', icon: 'fa-inbox', view: 'applications' },
+            { text: 'Customer Calls', icon: 'fa-phone', view: 'customerContacts' },
+            { text: 'Follow-ups', icon: 'fa-bell', view: 'followUps' },
+            { text: 'Send Message', icon: 'fa-comments', view: 'communications' }
+        ]
+    };
+    
+    const quickActionsDiv = document.getElementById('quickActions');
+    if (quickActionsDiv && actions[role]) {
+        quickActionsDiv.innerHTML = actions[role].map(action => `
+            <button class="action-btn" onclick="showView('${action.view}')">
+                <i class="fas ${action.icon}"></i><br>
+                ${action.text}
+            </button>
+        `).join('');
+    }
 }
 
-window.logout = function() {
+function showView(viewName) {
+    console.log('Showing view:', viewName);
+    
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item (if we can find it)
+    event.target.closest('.nav-item')?.classList.add('active');
+    
+    // Update main content based on view
+    const mainContent = document.getElementById('mainContent');
+    const mainTitle = document.getElementById('mainContentTitle');
+    
+    if (mainContent && mainTitle) {
+        const viewTitles = {
+            'overview': 'Recent Loans',
+            'allLoans': 'All Loans',
+            'myLoans': 'My Loans',
+            'addLoan': 'Add New Loan',
+            'repayments': 'Record Repayment',
+            'financialReports': 'Financial Reports',
+            'applications': 'Loan Applications',
+            'customerContacts': 'Customer Contacts'
+        };
+        
+        mainTitle.textContent = viewTitles[viewName] || viewName;
+        
+        // For now, just show a message
+        mainContent.innerHTML = `
+            <div style="text-align: center; padding: 3rem;">
+                <i class="fas fa-cogs" style="font-size: 3rem; color: #e0e0e0; margin-bottom: 1rem;"></i>
+                <h3>${viewTitles[viewName] || viewName}</h3>
+                <p>This view is under development. In a full system, this would show ${viewName} data.</p>
+                <button class="action-btn" onclick="showView('overview')" style="margin-top: 1rem;">
+                    <i class="fas fa-arrow-left"></i> Back to Overview
+                </button>
+            </div>
+        `;
+    }
+}
+
+function checkLoginStatus() {
+    const userData = localStorage.getItem('nkumbise_user');
+    
+    if (userData) {
+        try {
+            const user = JSON.parse(userData);
+            
+            // Check if login is still valid (within 8 hours)
+            const loginTime = new Date(user.loginTime);
+            const now = new Date();
+            const hoursDiff = (now - loginTime) / (1000 * 60 * 60);
+            
+            if (hoursDiff < 8) {
+                showDashboard(user);
+            } else {
+                localStorage.removeItem('nkumbise_user');
+            }
+        } catch (error) {
+            console.error('Error parsing user data:', error);
+            localStorage.removeItem('nkumbise_user');
+        }
+    }
+}
+
+function logout() {
     if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('nkumbise_session');
-        window.location.reload();
+        localStorage.removeItem('nkumbise_user');
+        location.reload();
     }
-};
+}
 
-window.showModal = function(modalId) {
-    document.getElementById(modalId).classList.add('show');
-};
-
-window.hideModal = function(modalId) {
-    document.getElementById(modalId).classList.remove('show');
-};
-
-// Password change functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const passwordChangeForm = document.getElementById('passwordChangeForm');
-    if (passwordChangeForm) {
-        passwordChangeForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            // Validation
-            if (newPassword.length < 8) {
-                alert('New password must be at least 8 characters');
-                return;
-            }
-            
-            if (!/\d/.test(newPassword)) {
-                alert('New password must contain at least one number');
-                return;
-            }
-            
-            if (newPassword !== confirmPassword) {
-                alert('New passwords do not match');
-                return;
-            }
-            
-            // In production, this would update the password in your GitHub data
-            console.log('Password change requested:', { currentPassword, newPassword });
-            
-            alert('Password changed successfully!');
-            hideModal('passwordChangeModal');
-            document.getElementById('passwordChangeAlert').style.display = 'none';
-            
-            // Clear form
-            passwordChangeForm.reset();
-        });
-    }
-});
+// Make functions available globally
+window.selectRole = selectRole;
+window.login = login;
+window.showView = showView;
+window.logout = logout;
