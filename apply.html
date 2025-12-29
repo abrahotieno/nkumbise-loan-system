@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Loan - Nkumbise Investment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <style>
+        /* Additional styles for application page */
+        .application-header {
+            padding: 140px 0 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            text-align: center;
+        }
+        
+        .application-container {
+            max-width: 800px;
+            margin: -40px auto 60px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .application-progress {
+            display: flex;
+            background: var(--light-color);
+            padding: 1.5rem;
+        }
+        
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            padding: 0.5rem;
+        }
+        
+        .progress-step.active .step-circle {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .progress-step.completed .step-circle {
+            background: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--gray-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: 600;
+            background: white;
+            transition: var(--transition);
+        }
+        
+        .step-label {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            font-weight: 500;
+        }
+        
+        .progress-step.active .step-label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .application-form {
+            padding: 3rem;
+        }
+        
+        .form-section {
+            margin-bottom: 2.5rem;
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--dark-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-color);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .form-label.required::after {
+            content: ' *';
+            color: var(--danger-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(45, 91, 227, 0.1);
+        }
+        
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px;
+            padding-right: 3rem;
+        }
+        
+        .form-help {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            margin-top: 0.5rem;
+        }
+        
+        .loan-summary {
+            background: var(--light-color);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .summary-row.total {
+            border-bottom: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 2rem;
+            border-top: 2px solid var(--light-color);
+        }
+        
+        .btn-back {
+            background: var(--light-color);
+            color: var(--dark-color);
+            padding: 0.8rem 2rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+        
+        .btn-back:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-next {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-next:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-submit {
+            background: var(--success-color);
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        
+        .btn-submit:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .confirmation-screen {
+            text-align: center;
+            padding: 3rem;
+            display: none;
+        }
+        
+        .confirmation-screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .confirmation-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 2rem;
+        }
+        
+        .confirmation-details {
+            background: var(--light-color);
+            padding: 2rem;
+            border-radius: var(--radius);
+            margin: 2rem 0;
+            text-align: left;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .whatsapp-notice {
+            background: rgba(37, 211, 102, 0.1);
+            border: 2px solid #25d366;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .whatsapp-notice i {
+            color: #25d366;
+            font-size: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .application-container {
+                margin: -20px 20px 40px;
+            }
+            
+            .application-form {
+                padding: 2rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>Nkumbise<span class="highlight">Investment</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="apply.html" class="active">Apply for Loan</a>
+                <a href="track.html">Track Application</a>
+                <a href="dashboard.html" class="btn-outline">Staff Login</a>
+            </div>
+            <button class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Application Header -->
+    <header class="application-header">
+        <div class="container">
+            <h1>Apply for a Loan</h1>
+            <p>Complete this simple form to get started. We'll contact you within 24 hours.</p>
+        </div>
+    </header>
+
+    <!-- Application Container -->
+    <div class="container">
+        <div class="application-container">
+            <!-- Progress Steps -->
+            <div class="application-progress">
+                <div class="progress-step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Personal Info</div>
+                </div>
+                <div class="progress-step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Loan Details</div>
+                </div>
+                <div class="progress-step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Review & Submit</div>
+                </div>
+            </div>
+
+            <!-- Application Form -->
+            <form id="loanApplicationForm" class="application-form">
+                <!-- Step 1: Personal Information -->
+                <div class="form-section active" id="section1">
+                    <h2 class="section-title">Personal Information</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="fullName">Full Name</label>
+                            <input type="text" id="fullName" class="form-control" required 
+                                   placeholder="Enter your full name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label required" for="phoneNumber">Phone Number</label>
+                            <input type="tel" id="phoneNumber" class="form-control" required
+                                   placeholder="+255 XXX XXX XXX">
+                            <span class="form-help">We'll contact you on this number</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <input type="email" id="email" class="form-control"
+                                   placeholder="your.email@example.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label required" for="location">Location/Town</label>
+                            <input type="text" id="location" class="form-control" required
+                                   placeholder="Where are you located?">
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <a href="index.html" class="btn-back">
+                            <i class="fas fa-arrow-left"></i> Cancel
+                        </a>
+                        <button type="button" class="btn-next" onclick="nextStep(2)">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Loan Details -->
+                <div class="form-section" id="section2">
+                    <h2 class="section-title">Loan Details</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="loanAmount">Loan Amount Needed</label>
+                            <div class="amount-input">
+                                <span class="currency">$</span>
+                                <input type="range" id="amountSlider" min="500" max="5000" step="100" value="1000">
+                                <input type="number" id="loanAmount" class="form-control" min="500" max="5000" value="1000" required>
+                            </div>
+                            <div class="amount-range">
+                                <span>$500</span>
+                                <span>$5,000</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label required" for="repaymentPeriod">Repayment Period</label>
+                            <select id="repaymentPeriod" class="form-control form-select" required>
+                                <option value="30">30 Days</option>
+                                <option value="60">60 Days</option>
+                                <option value="90">90 Days</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="loanPurpose">Loan Purpose</label>
+                            <select id="loanPurpose" class="form-control form-select" required>
+                                <option value="">Select purpose</option>
+                                <option value="business">Business Expansion</option>
+                                <option value="education">Education</option>
+                                <option value="emergency">Emergency</option>
+                                <option value="medical">Medical Expenses</option>
+                                <option value="agriculture">Agriculture</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Loan Summary -->
+                    <div class="loan-summary">
+                        <h3 style="margin-bottom: 1rem;">Loan Summary</h3>
+                        <div class="summary-row">
+                            <span>Loan Amount</span>
+                            <strong id="summaryAmount">$1,000</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Interest (1% daily)</span>
+                            <strong id="summaryInterest">$300</strong>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total Repayment</span>
+                            <strong id="summaryTotal">$1,300</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- Collateral Information -->
+                    <h3 style="margin: 2rem 0 1rem;">Collateral Information (Optional)</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="collateralType">Collateral Type</label>
+                            <select id="collateralType" class="form-control form-select">
+                                <option value="">Select if applicable</option>
+                                <option value="land">Land/Property</option>
+                                <option value="vehicle">Vehicle</option>
+                                <option value="electronics">Electronics</option>
+                                <option value="machinery">Machinery</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="collateralValue">Estimated Value</label>
+                            <input type="number" id="collateralValue" class="form-control"
+                                   placeholder="$0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn-back" onclick="prevStep(1)">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn-next" onclick="nextStep(3)">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Review & Submit -->
+                <div class="form-section" id="section3">
+                    <h2 class="section-title">Review Your Application</h2>
+                    
+                    <div class="confirmation-details">
+                        <div class="detail-row">
+                            <span>Application ID</span>
+                            <strong id="reviewAppId">#APP20241230001</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Full Name</span>
+                            <strong id="reviewName">John Doe</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Phone Number</span>
+                            <strong id="reviewPhone">+255123456789</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Location</span>
+                            <strong id="reviewLocation">Dar es Salaam</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Loan Amount</span>
+                            <strong id="reviewAmount">$1,000</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Repayment Period</span>
+                            <strong id="reviewPeriod">30 Days</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Total Repayment</span>
+                            <strong id="reviewTotal" class="highlight">$1,300</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Loan Purpose</span>
+                            <strong id="reviewPurpose">Business</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="whatsapp-notice">
+                        <i class="fab fa-whatsapp"></i>
+                        <div>
+                            <strong>Important:</strong> We'll contact you via WhatsApp on the phone number provided.
+                            Please ensure your WhatsApp is active.
+                        </div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn-back" onclick="prevStep(2)">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn-submit" onclick="submitApplication()">
+                            <i class="fas fa-paper-plane"></i> Submit Application
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Confirmation Screen -->
+            <div class="confirmation-screen" id="confirmationScreen">
+                <div class="confirmation-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                
+                <h2>Application Submitted Successfully!</h2>
+                <p>Thank you for applying with Nkumbise Investment.</p>
+                
+                <div class="confirmation-details">
+                    <div class="detail-row">
+                        <span>Application ID</span>
+                        <strong id="confirmAppId">#APP20241230001</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Status</span>
+                        <strong style="color: var(--warning-color);">Under Review</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Submitted On</span>
+                        <strong id="confirmDate">December 30, 2024 - 14:45</strong>
+                    </div>
+                </div>
+                
+                <div class="whatsapp-notice">
+                    <i class="fab fa-whatsapp"></i>
+                    <div>
+                        <strong>What happens next?</strong><br>
+                        1. We'll contact you within 24 hours via WhatsApp<br>
+                        2. Prepare your ID and any documents<br>
+                        3. Meet our agent for verification<br>
+                        4. Receive funds upon approval
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <a href="track.html" class="btn-primary" style="margin-right: 1rem;">
+                        <i class="fas fa-search"></i> Track Application
+                    </a>
+                    <a href="index.html" class="btn-secondary">
+                        <i class="fas fa-home"></i> Return Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        <span>Nkumbise<span class="highlight">Investment</span></span>
+                    </a>
+                    <p>Fast, transparent loans with clear terms. Empowering your financial goals.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <a href="index.html">Home</a>
+                    <a href="apply.html">Apply for Loan</a>
+                    <a href="track.html">Track Application</a>
+                    <a href="dashboard.html">Staff Login</a>
+                </div>
+                
+                <div class="footer-contact">
+                    <h4>Contact Us</h4>
+                    <p><i class="fas fa-phone"></i> +255 XXX XXX XXX</p>
+                    <p><i class="fas fa-envelope"></i> info@nkumbiseinvestment.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Tanzania</p>
+                    <p><i class="fas fa-clock"></i> Mon-Fri: 8AM-6PM</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 Nkumbise Investment. All rights reserved.</p>
+                <p>1% daily interest rate. Terms and conditions apply.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/application.js"></script>
+</body>
+</html>
