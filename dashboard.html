@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - Nkumbise Investment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <style>
+        /* Additional styles for dashboard */
+        .login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            padding: 20px;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .login-header {
+            padding: 2.5rem;
+            text-align: center;
+            background: var(--light-color);
+        }
+        
+        .login-header .logo {
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        
+        .login-header h2 {
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .login-header p {
+            color: var(--gray-color);
+        }
+        
+        .login-body {
+            padding: 2.5rem;
+        }
+        
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .role-option {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius);
+            background: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+        
+        .role-option:hover {
+            border-color: var(--primary-color);
+            background: rgba(45, 91, 227, 0.05);
+        }
+        
+        .role-option.active {
+            border-color: var(--primary-color);
+            background: rgba(45, 91, 227, 0.1);
+        }
+        
+        .role-icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .role-name {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(45, 91, 227, 0.1);
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .login-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .login-error {
+            color: var(--danger-color);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+        }
+        
+        /* Dashboard Styles */
+        .dashboard-container {
+            display: none;
+            min-height: 100vh;
+            background: #f5f7fa;
+        }
+        
+        .dashboard-sidebar {
+            width: 250px;
+            background: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+        
+        .sidebar-logo i {
+            color: var(--primary-color);
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.5rem;
+            color: var(--gray-color);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+        
+        .nav-item:hover {
+            color: var(--primary-color);
+            background: rgba(45, 91, 227, 0.05);
+            border-left-color: var(--primary-color);
+        }
+        
+        .nav-item.active {
+            color: var(--primary-color);
+            background: rgba(45, 91, 227, 0.1);
+            border-left-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .nav-icon {
+            width: 24px;
+            margin-right: 12px;
+            text-align: center;
+        }
+        
+        .user-info {
+            padding: 1.5rem;
+            border-top: 1px solid #e0e0e0;
+            margin-top: auto;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+        
+        .user-details {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .user-role {
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            margin-top: 2px;
+        }
+        
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.5rem;
+            color: var(--danger-color);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(220, 53, 69, 0.05);
+            border-left-color: var(--danger-color);
+        }
+        
+        .dashboard-main {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .dashboard-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .dashboard-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .stat-content h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+        
+        .stat-content p {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+        
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        
+        .content-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .view-all {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            text-align: left;
+            padding: 1rem;
+            background: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .badge-success {
+            background: rgba(40, 167, 69, 0.1);
+            color: #155724;
+        }
+        
+        .badge-warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+        }
+        
+        .badge-danger {
+            background: rgba(220, 53, 69, 0.1);
+            color: #721c24;
+        }
+        
+        .badge-info {
+            background: rgba(0, 123, 255, 0.1);
+            color: #004085;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .action-btn {
+            padding: 1rem;
+            background: var(--light-color);
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            color: var(--dark-color);
+        }
+        
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .activity-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(45, 91, 227, 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-text {
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .activity-time {
+            font-size: 0.85rem;
+            color: var(--gray-color);
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-sidebar {
+                width: 70px;
+            }
+            
+            .dashboard-sidebar .nav-text,
+            .dashboard-sidebar .user-name,
+            .dashboard-sidebar .user-role {
+                display: none;
+            }
+            
+            .dashboard-main {
+                margin-left: 70px;
+            }
+            
+            .sidebar-header {
+                padding: 1rem;
+                text-align: center;
+            }
+            
+            .sidebar-logo span {
+                display: none;
+            }
+            
+            .nav-icon {
+                margin-right: 0;
+            }
+            
+            .user-details {
+                justify-content: center;
+            }
+            
+            .user-avatar {
+                margin-right: 0;
+            }
+            
+            .role-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Role-specific styles */
+        .admin-view { display: none; }
+        .partner-view { display: none; }
+        .accountant-view { display: none; }
+        .support-view { display: none; }
+        
+        /* View switching */
+        .view-active {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <div class="login-header">
+                <a href="index.html" class="logo">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span>Nkumbise<span class="highlight">Investment</span></span>
+                </a>
+                <h2>Staff Login</h2>
+                <p>Access your role-based dashboard</p>
+            </div>
+            
+            <div class="login-body">
+                <div class="role-selector">
+                    <button class="role-option active" onclick="selectRole('admin')">
+                        <div class="role-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="role-name">Admin</div>
+                    </button>
+                    
+                    <button class="role-option" onclick="selectRole('partner')">
+                        <div class="role-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="role-name">Partner</div>
+                    </button>
+                    
+                    <button class="role-option" onclick="selectRole('accountant')">
+                        <div class="role-icon">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="role-name">Accountant</div>
+                    </button>
+                    
+                    <button class="role-option" onclick="selectRole('support')">
+                        <div class="role-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <div class="role-name">Support</div>
+                    </button>
+                </div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label" for="username">Username</label>
+                        <input type="text" id="username" class="form-control" 
+                               placeholder="Enter your username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" id="password" class="form-control" 
+                               placeholder="Enter your password" required>
+                    </div>
+                    
+                    <div class="login-error" id="loginError">
+                        Invalid username or password. Please try again.
+                    </div>
+                    
+                    <button type="button" class="login-button" onclick="login()">
+                        <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                    </button>
+                </form>
+                
+                <p style="text-align: center; margin-top: 1.5rem; color: var(--gray-color);">
+                    <a href="index.html" style="color: var(--primary-color); text-decoration: none;">
+                        <i class="fas fa-arrow-left"></i> Back to Main Site
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Container (Hidden until login) -->
+    <div class="dashboard-container" id="dashboardContainer">
+        <!-- Sidebar -->
+        <div class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="sidebar-logo">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span>Nkumbise</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="showView('overview')">
+                    <div class="nav-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                
+                <!-- Admin Views -->
+                <div class="admin-view view-active">
+                    <a href="#" class="nav-item" onclick="showView('allLoans')">
+                        <div class="nav-icon">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <span class="nav-text">All Loans</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('investorReports')">
+                        <div class="nav-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <span class="nav-text">Investor Reports</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('userManagement')">
+                        <div class="nav-icon">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <span class="nav-text">User Management</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('systemLogs')">
+                        <div class="nav-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <span class="nav-text">System Logs</span>
+                    </a>
+                </div>
+                
+                <!-- Partner Views -->
+                <div class="partner-view">
+                    <a href="#" class="nav-item" onclick="showView('myLoans')">
+                        <div class="nav-icon">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <span class="nav-text">My Loans</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('addLoan')">
+                        <div class="nav-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <span class="nav-text">Add New Loan</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('repayments')">
+                        <div class="nav-icon">
+                            <i class="fas fa-money-check-alt"></i>
+                        </div>
+                        <span class="nav-text">Record Repayment</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('partnerReports')">
+                        <div class="nav-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <span class="nav-text">My Reports</span>
+                    </a>
+                </div>
+                
+                <!-- Accountant Views -->
+                <div class="accountant-view">
+                    <a href="#" class="nav-item" onclick="showView('financialReports')">
+                        <div class="nav-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <span class="nav-text">Financial Reports</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('profitDistribution')">
+                        <div class="nav-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <span class="nav-text">Profit Distribution</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('exportData')">
+                        <div class="nav-icon">
+                            <i class="fas fa-file-export"></i>
+                        </div>
+                        <span class="nav-text">Export Data</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('auditLog')">
+                        <div class="nav-icon">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <span class="nav-text">Audit Log</span>
+                    </a>
+                </div>
+                
+                <!-- Support Views -->
+                <div class="support-view">
+                    <a href="#" class="nav-item" onclick="showView('applications')">
+                        <div class="nav-icon">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                        <span class="nav-text">Applications</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('customerContacts')">
+                        <div class="nav-icon">
+                            <i class="fas fa-address-book"></i>
+                        </div>
+                        <span class="nav-text">Customer Contacts</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('followUps')">
+                        <div class="nav-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <span class="nav-text">Follow-ups</span>
+                    </a>
+                    
+                    <a href="#" class="nav-item" onclick="showView('communications')">
+                        <div class="nav-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <span class="nav-text">Communications</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-details">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div>
+                        <div class="user-name" id="userName">Admin User</div>
+                        <div class="user-role" id="userRole">Administrator</div>
+                    </div>
+                </div>
+                
+                <a href="#" class="logout-btn" onclick="logout()">
+                    <div class="nav-icon">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <span class="nav-text">Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="dashboard-main">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <div class="dashboard-title" id="dashboardTitle">Dashboard Overview</div>
+                <div class="header-actions">
+                    <div id="currentDate" style="color: var(--gray-color);"></div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: var(--primary-color);">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="statTotalLoans">0</h3>
+                            <p>Total Loans</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: var(--success-color);">
+                            <i class="fas fa-money-check-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="statTotalAmount">$0</h3>
+                            <p>Total Loan Amount</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: var(--warning-color);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="statActiveLoans">0</h3>
+                            <p>Active Loans</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: var(--accent-color);">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="statTotalProfit">$0</h3>
+                            <p>Total Profit</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="dashboard-content">
+                <!-- Left Column -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <div class="card-title" id="mainContentTitle">Recent Activities</div>
+                        <a href="#" class="view-all" onclick="showView('systemLogs')">View All</a>
+                    </div>
+                    
+                    <div id="mainContent">
+                        <!-- Content will be loaded here based on view -->
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Loan ID</th>
+                                        <th>Customer</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Due Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loansTable">
+                                    <!-- Loans will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions" id="quickActions">
+                        <!-- Quick actions will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <div class="card-title">Recent Activities</div>
+                        <a href="#" class="view-all">View All</a>
+                    </div>
+                    
+                    <ul class="activity-list" id="activityList">
+                        <!-- Activities will be loaded here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
