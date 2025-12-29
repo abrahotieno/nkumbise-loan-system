@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Application - Nkumbise Investment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <style>
+        /* Additional styles for tracker page */
+        .tracker-header {
+            padding: 140px 0 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            text-align: center;
+        }
+        
+        .tracker-container {
+            max-width: 800px;
+            margin: -40px auto 60px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .tracker-search {
+            padding: 3rem;
+            text-align: center;
+            background: var(--light-color);
+        }
+        
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .search-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-tab {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .search-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .search-input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(45, 91, 227, 0.1);
+        }
+        
+        .search-button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .search-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .tracker-results {
+            padding: 3rem;
+            display: none;
+        }
+        
+        .tracker-results.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .application-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            background: var(--light-color);
+            padding: 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .app-id {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .app-status {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #856404;
+        }
+        
+        .status-review {
+            background: rgba(0, 123, 255, 0.2);
+            color: #004085;
+        }
+        
+        .status-approved {
+            background: rgba(40, 167, 69, 0.2);
+            color: #155724;
+        }
+        
+        .status-rejected {
+            background: rgba(220, 53, 69, 0.2);
+            color: #721c24;
+        }
+        
+        .status-disbursed {
+            background: rgba(111, 66, 193, 0.2);
+            color: #3d0a91;
+        }
+        
+        .status-completed {
+            background: rgba(108, 117, 125, 0.2);
+            color: #343a40;
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .info-item {
+            padding: 1rem;
+            background: var(--light-color);
+            border-radius: var(--radius);
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .timeline {
+            margin-top: 2rem;
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0e0e0;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+            padding-left: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: 2px solid white;
+            box-shadow: 0 0 0 3px var(--primary-color);
+        }
+        
+        .timeline-item.completed::before {
+            background: var(--success-color);
+            box-shadow: 0 0 0 3px var(--success-color);
+        }
+        
+        .timeline-item.current::before {
+            background: var(--warning-color);
+            box-shadow: 0 0 0 3px var(--warning-color);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+        
+        .timeline-date {
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            margin-bottom: 0.3rem;
+        }
+        
+        .timeline-content {
+            font-weight: 500;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--light-color);
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray-color);
+        }
+        
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #e0e0e0;
+        }
+        
+        .help-text {
+            text-align: center;
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .tracker-container {
+                margin: -20px 20px 40px;
+            }
+            
+            .tracker-search,
+            .tracker-results {
+                padding: 2rem;
+            }
+            
+            .search-tabs {
+                flex-direction: column;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>Nkumbise<span class="highlight">Investment</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="apply.html">Apply for Loan</a>
+                <a href="track.html" class="active">Track Application</a>
+                <a href="dashboard.html" class="btn-outline">Staff Login</a>
+            </div>
+            <button class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Tracker Header -->
+    <header class="tracker-header">
+        <div class="container">
+            <h1>Track Your Application</h1>
+            <p>Check the status of your loan application anytime</p>
+        </div>
+    </header>
+
+    <!-- Tracker Container -->
+    <div class="container">
+        <div class="tracker-container">
+            <!-- Search Section -->
+            <div class="tracker-search">
+                <div class="search-box">
+                    <h2 style="margin-bottom: 2rem;">Find Your Application</h2>
+                    
+                    <div class="search-tabs">
+                        <button class="search-tab active" onclick="switchSearchTab('id')">
+                            <i class="fas fa-hashtag"></i> By Application ID
+                        </button>
+                        <button class="search-tab" onclick="switchSearchTab('phone')">
+                            <i class="fas fa-phone"></i> By Phone Number
+                        </button>
+                    </div>
+                    
+                    <div class="search-input-group" id="searchById">
+                        <input type="text" class="search-input" 
+                               placeholder="Enter your Application ID (e.g., APP20241230001)"
+                               id="applicationId">
+                    </div>
+                    
+                    <div class="search-input-group" id="searchByPhone" style="display: none;">
+                        <input type="tel" class="search-input" 
+                               placeholder="Enter your phone number (e.g., +255123456789)"
+                               id="phoneNumber">
+                    </div>
+                    
+                    <button class="search-button" onclick="searchApplication()">
+                        <i class="fas fa-search"></i> Track Application
+                    </button>
+                    
+                    <p class="help-text">
+                        <i class="fas fa-info-circle"></i>
+                        Don't have your Application ID? Use the phone number you applied with.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="tracker-results" id="resultsSection">
+                <!-- Application details will be loaded here -->
+            </div>
+            
+            <!-- No Results Message -->
+            <div class="no-results" id="noResults" style="display: none;">
+                <i class="fas fa-search"></i>
+                <h3>No Application Found</h3>
+                <p>We couldn't find an application with the details provided.</p>
+                <div style="margin-top: 1.5rem;">
+                    <a href="apply.html" class="btn-primary">
+                        <i class="fas fa-paper-plane"></i> Apply for a Loan
+                    </a>
+                    <button class="btn-secondary" onclick="resetSearch()" style="margin-left: 1rem;">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        <span>Nkumbise<span class="highlight">Investment</span></span>
+                    </a>
+                    <p>Fast, transparent loans with clear terms. Empowering your financial goals.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <a href="index.html">Home</a>
+                    <a href="apply.html">Apply for Loan</a>
+                    <a href="track.html">Track Application</a>
+                    <a href="dashboard.html">Staff Login</a>
+                </div>
+                
+                <div class="footer-contact">
+                    <h4>Contact Us</h4>
+                    <p><i class="fas fa-phone"></i> +255 XXX XXX XXX</p>
+                    <p><i class="fas fa-envelope"></i> info@nkumbiseinvestment.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Tanzania</p>
+                    <p><i class="fas fa-clock"></i> Mon-Fri: 8AM-6PM</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 Nkumbise Investment. All rights reserved.</p>
+                <p>1% daily interest rate. Terms and conditions apply.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/tracker.js"></script>
+</body>
+</html>
