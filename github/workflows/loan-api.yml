@@ -11,188 +11,95 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GH_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Create API processor
+      - name: Process API Request
+        id: process
         run: |
-          cat > process-request.js << 'EOF'
-          const fs = require('fs').promises;
+          # Create processor script
+          cat > process.js << 'EOF'
+          const fs = require('fs');
           const path = require('path');
-
-          async function main() {
+          
+          // Read event data
+          const eventPath = process.env.GITHUB_EVENT_PATH;
+          const eventData = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+          const payload = eventData.client_payload || {};
+          
+          const { action, type, data, id } = payload;
+          
+          console.log('Processing:', action, 'for', type);
+          
+          // Ensure data directory exists
+          const dataDir = path.join(process.cwd(), 'data');
+          if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+          }
+          
+          const filePath = path.join(dataDir, `${type}.json`);
+          
+          // Read existing data or create empty array
+          let fileData = [];
+          if (fs.existsSync(filePath)) {
             try {
-              // Read the event payload
-              const eventPath = process.env.GITHUB_EVENT_PATH;
-              const eventData = JSON.parse(await fs.readFile(eventPath, 'utf8'));
-              const payload = eventData.client_payload || {};
-              
-              const { action, dataType, data, id, operation } = payload;
-              
-              console.log(`Processing: ${action} for ${dataType}`);
-              
-              // Ensure data directory exists
-              const dataDir = path.join(process.cwd(), 'data');
-              try {
-                await fs.access(dataDir);
-              } catch {
-                await fs.mkdir(dataDir, { recursive: true });
-              }
-              
-              let result;
-              
-              switch(action) {
-                case 'GET_DATA':
-                  result = await getData(dataType);
-                  break;
-                  
-                case 'SAVE_DATA':
-                  result = await saveData(dataType, data, id, operation);
-                  break;
-                  
-                case 'SEARCH_DATA':
-                  result = await searchData(dataType, data);
-                  break;
-                  
-                default:
-                  result = { success: false, error: 'Unknown action' };
-              }
-              
-              // Output result for GitHub Actions
-              console.log('RESULT:', JSON.stringify(result));
-              
-            } catch (error) {
-              console.error('Error:', error.message);
-              process.exit(1);
+              const content = fs.readFileSync(filePath, 'utf8');
+              fileData = JSON.parse(content || '[]');
+            } catch (e) {
+              fileData = [];
             }
           }
-
-          async function getData(dataType) {
-            const filePath = path.join('data', `${dataType}.json`);
-            try {
-              const content = await fs.readFile(filePath, 'utf8');
-              return { success: true, data: JSON.parse(content) };
-            } catch (error) {
-              // File doesn't exist, return empty array
-              if (error.code === 'ENOENT') {
-                return { success: true, data: [] };
-              }
-              throw error;
-            }
-          }
-
-          async function saveData(dataType, newData, id, operation = 'add') {
-            const filePath = path.join('data', `${dataType}.json`);
-            
-            // Get existing data
-            const existing = await getData(dataType);
-            let data = existing.data || [];
-            
+          
+          let result = { success: true };
+          
+          if (action === 'get') {
+            result.data = fileData;
+          } else if (action === 'save') {
             const timestamp = new Date().toISOString();
             
-            if (operation === 'update' && id) {
-              // Update existing item
-              const index = data.findIndex(item => item.id === id);
+            if (id) {
+              // Update existing
+              const index = fileData.findIndex(item => item.id === id);
               if (index !== -1) {
-                data[index] = { ...data[index], ...newData, updatedAt: timestamp };
+                fileData[index] = { ...fileData[index], ...data, updatedAt: timestamp };
               } else {
-                data.push({ id, ...newData, createdAt: timestamp });
+                fileData.push({ id, ...data, createdAt: timestamp });
               }
-            } else if (operation === 'delete' && id) {
-              // Delete item
-              data = data.filter(item => item.id !== id);
             } else {
-              // Add new item
-              const newId = id || `${dataType.toUpperCase().slice(0,3)}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
-              data.push({ 
-                id: newId, 
-                ...newData, 
+              // Add new
+              const newId = `${type.slice(0,3).toUpperCase()}-${Date.now()}`;
+              fileData.push({
+                id: newId,
+                ...data,
                 createdAt: timestamp,
-                createdBy: process.env.GITHUB_ACTOR || 'system'
+                currency: 'TZS'
               });
+              result.id = newId;
             }
             
-            // Save to file
-            await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-            
-            return { 
-              success: true, 
-              message: `${operation === 'delete' ? 'Deleted' : 'Saved'} ${dataType}`,
-              id: id || newId,
-              count: data.length
-            };
+            // Save file
+            fs.writeFileSync(filePath, JSON.stringify(fileData, null, 2));
+            result.count = fileData.length;
           }
-
-          async function searchData(dataType, query) {
-            const { searchTerm, filters = {} } = query;
-            const existing = await getData(dataType);
-            let data = existing.data || [];
-            
-            // Apply filters
-            if (filters.status) {
-              data = data.filter(item => item.status === filters.status);
-            }
-            
-            if (filters.role) {
-              data = data.filter(item => item.role === filters.role);
-            }
-            
-            if (filters.dateFrom) {
-              data = data.filter(item => new Date(item.createdAt) >= new Date(filters.dateFrom));
-            }
-            
-            if (filters.dateTo) {
-              data = data.filter(item => new Date(item.createdAt) <= new Date(filters.dateTo));
-            }
-            
-            // Apply search term
-            if (searchTerm) {
-              const term = searchTerm.toLowerCase();
-              data = data.filter(item => 
-                JSON.stringify(item).toLowerCase().includes(term)
-              );
-            }
-            
-            return { success: true, data: data, count: data.length };
-          }
-
-          main();
-          EOF
-
-      - name: Run API processor
-        id: processor
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          node process-request.js 2>&1 | tee output.log
           
-          # Extract result from logs
-          RESULT_LINE=$(grep '^RESULT:' output.log || echo '{"success": false}')
-          RESULT_JSON=${RESULT_LINE#RESULT: }
-          echo "result=$RESULT_JSON" >> $GITHUB_OUTPUT
+          console.log(JSON.stringify(result));
+          EOF
+          
+          # Run processor
+          node process.js > output.json
+          echo "result=$(cat output.json)" >> $GITHUB_OUTPUT
 
-      - name: Commit and push changes
-        if: steps.processor.outputs.result
+      - name: Commit and push
+        if: steps.process.outputs.result
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
-          # Check if there are changes
           git add data/
-          if ! git diff --quiet --staged; then
-            git commit -m "Update loan system data via API [skip ci]"
+          if ! git diff --cached --quiet; then
+            git commit -m "Update ${{ github.event.client_payload.type }} data"
             git push
-            echo "Changes committed and pushed"
-          else
-            echo "No changes to commit"
           fi
-
-      - name: Output result
-        run: |
-          echo "API processing completed"
-          echo "Result: ${{ steps.processor.outputs.result }}"
