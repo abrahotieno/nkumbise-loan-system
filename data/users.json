@@ -1,42 +1,38 @@
 [
   {
-    "id": "U001",
+    "id": "admin",
     "username": "admin",
-    "password": "admin123",
+    "name": "Administrator",
     "role": "admin",
-    "name": "System Administrator",
-    "createdAt": "2024-12-29",
-    "lastLogin": null,
-    "mustChangePassword": false
+    "email": "admin@nkumbise.co.tz",
+    "password": "admin",
+    "created": "2024-01-01T00:00:00.000Z"
   },
   {
-    "id": "U002",
+    "id": "partner1",
     "username": "partner",
-    "password": "partner123",
+    "name": "Field Partner",
     "role": "partner",
-    "name": "Tanzania Partner",
-    "createdAt": "2024-12-29",
-    "lastLogin": null,
-    "mustChangePassword": false
+    "email": "partner@nkumbise.co.tz",
+    "password": "admin",
+    "created": "2024-01-01T00:00:00.000Z"
   },
   {
-    "id": "U003",
-    "username": "account",
-    "password": "account123",
+    "id": "accountant1",
+    "username": "accountant",
+    "name": "Accountant",
     "role": "accountant",
-    "name": "Finance Accountant",
-    "createdAt": "2024-12-29",
-    "lastLogin": null,
-    "mustChangePassword": false
+    "email": "accountant@nkumbise.co.tz",
+    "password": "admin",
+    "created": "2024-01-01T00:00:00.000Z"
   },
   {
-    "id": "U004",
+    "id": "support1",
     "username": "support",
-    "password": "support123",
+    "name": "Support Staff",
     "role": "support",
-    "name": "Customer Support",
-    "createdAt": "2024-12-29",
-    "lastLogin": null,
-    "mustChangePassword": false
+    "email": "support@nkumbise.co.tz",
+    "password": "admin",
+    "created": "2024-01-01T00:00:00.000Z"
   }
 ]
