@@ -1,173 +1,191 @@
-// Nkumbise Loan System - GitHub API Client
+// Nkumbise Loan System - Direct GitHub API
 class NkumbiseAPI {
     constructor() {
         this.owner = 'abrahotieno';
         this.repo = 'nkumbise-loan-system';
-        this.cache = {};
+        this.branch = 'main';
+        this.token = null;
     }
 
-    // Get data from GitHub Pages
-    async getData(type) {
-        try {
-            const url = `https://${this.owner}.github.io/${this.repo}/data/${type}.json`;
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                if (response.status === 404) {
-                    // File doesn't exist yet
-                    return [];
-                }
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const data = await response.json();
-            return Array.isArray(data) ? data : [];
-        } catch (error) {
-            console.warn(`Failed to load ${type}:`, error);
-            
-            // Fallback to localStorage
-            return this.getLocalData(type);
-        }
+    // Set GitHub token
+    setToken(token) {
+        this.token = token;
+        sessionStorage.setItem('nkumbise_gh_token', token);
     }
 
-    // Save data via GitHub API
-    async saveData(type, data, id = null) {
-        try {
-            const token = this.getToken();
-            if (!token) {
-                throw new Error('GitHub token not set');
-            }
-
-            const response = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/dispatches`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    event_type: 'loan-api-request',
-                    client_payload: {
-                        action: 'save',
-                        type: type,
-                        data: data,
-                        id: id,
-                        timestamp: new Date().toISOString()
-                    }
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-
-            console.log(`Data saved to GitHub: ${type}`);
-            
-            // Wait for GitHub Action to process
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Return updated data
-            return await this.getData(type);
-
-        } catch (error) {
-            console.error('Save failed:', error);
-            
-            // Fallback to localStorage
-            return this.saveLocalData(type, data, id);
-        }
-    }
-
-    // Local storage fallback
-    getLocalData(type) {
-        try {
-            const data = localStorage.getItem(`nkumbise_${type}`);
-            return data ? JSON.parse(data) : [];
-        } catch {
-            return [];
-        }
-    }
-
-    saveLocalData(type, newData, id = null) {
-        try {
-            let data = this.getLocalData(type);
-            const timestamp = new Date().toISOString();
-            
-            if (id) {
-                const index = data.findIndex(item => item.id === id);
-                if (index !== -1) {
-                    data[index] = { ...data[index], ...newData, updatedAt: timestamp };
-                } else {
-                    data.push({ id, ...newData, createdAt: timestamp });
-                }
-            } else {
-                const newId = `${type.slice(0,3).toUpperCase()}-${Date.now()}`;
-                data.push({
-                    id: newId,
-                    ...newData,
-                    createdAt: timestamp,
-                    currency: 'TZS'
-                });
-            }
-            
-            localStorage.setItem(`nkumbise_${type}`, JSON.stringify(data));
-            return data;
-        } catch (error) {
-            console.error('Local save failed:', error);
-            return [];
-        }
-    }
-
-    // Token management
+    // Get token
     getToken() {
-        // Check session storage first
-        const sessionToken = sessionStorage.getItem('nkumbise_gh_token');
-        if (sessionToken) return sessionToken;
+        if (this.token) return this.token;
         
-        // Check localStorage
-        const localToken = localStorage.getItem('nkumbise_gh_token');
-        if (localToken) {
-            sessionStorage.setItem('nkumbise_gh_token', localToken);
-            return localToken;
+        const token = sessionStorage.getItem('nkumbise_gh_token');
+        if (token) {
+            this.token = token;
+            return token;
         }
         
         return null;
     }
 
-    setToken(token) {
-        sessionStorage.setItem('nkumbise_gh_token', token);
-        localStorage.setItem('nkumbise_gh_token', token);
+    // Direct GitHub API call
+    async githubAPI(endpoint, method = 'GET', data = null) {
+        const token = this.getToken();
+        if (!token) {
+            throw new Error('GitHub token not set. Please add token in Settings.');
+        }
+
+        const url = `https://api.github.com/${endpoint}`;
+        
+        const headers = {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+        };
+
+        const options = {
+            method: method,
+            headers: headers
+        };
+
+        if (data && (method === 'POST' || method === 'PUT')) {
+            options.body = JSON.stringify(data);
+        }
+
+        const response = await fetch(url, options);
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`GitHub API error ${response.status}: ${error}`);
+        }
+
+        if (method !== 'DELETE') {
+            return await response.json();
+        }
+
+        return { success: true };
     }
 
-    // Loan operations
+    // Get file from GitHub
+    async getFile(filename) {
+        try {
+            const endpoint = `repos/${this.owner}/${this.repo}/contents/data/${filename}`;
+            const fileData = await this.githubAPI(endpoint);
+            
+            if (fileData.content) {
+                // Decode base64 content
+                const content = atob(fileData.content.replace(/\n/g, ''));
+                return JSON.parse(content);
+            }
+            
+            return [];
+        } catch (error) {
+            if (error.message.includes('404')) {
+                // File doesn't exist yet
+                return [];
+            }
+            throw error;
+        }
+    }
+
+    // Save file to GitHub
+    async saveFile(filename, data) {
+        try {
+            const endpoint = `repos/${this.owner}/${this.repo}/contents/data/${filename}`;
+            
+            // First try to get existing file to get its SHA
+            let sha = null;
+            try {
+                const existingFile = await this.githubAPI(endpoint);
+                sha = existingFile.sha;
+            } catch (error) {
+                // File doesn't exist yet, that's okay
+                if (!error.message.includes('404')) {
+                    throw error;
+                }
+            }
+            
+            // Convert data to base64
+            const content = JSON.stringify(data, null, 2);
+            const encodedContent = btoa(unescape(encodeURIComponent(content)));
+            
+            const requestData = {
+                message: `Update ${filename} - ${new Date().toISOString()}`,
+                content: encodedContent,
+                branch: this.branch
+            };
+            
+            if (sha) {
+                requestData.sha = sha;
+            }
+            
+            await this.githubAPI(endpoint, 'PUT', requestData);
+            return data;
+        } catch (error) {
+            throw new Error(`Failed to save ${filename}: ${error.message}`);
+        }
+    }
+
+    // Get data methods
     async getLoans() {
-        return await this.getData('loans');
+        return await this.getFile('loans.json');
     }
 
-    async saveLoan(loanData, id = null) {
-        return await this.saveData('loans', loanData, id);
+    async saveLoans(loans) {
+        return await this.saveFile('loans.json', loans);
     }
 
-    // Application operations
     async getApplications() {
-        return await this.getData('applications');
+        return await this.getFile('applications.json');
     }
 
-    async saveApplication(appData, id = null) {
-        return await this.saveData('applications', appData, id);
+    async saveApplications(applications) {
+        return await this.saveFile('applications.json', applications);
     }
 
-    // Customer operations
     async getCustomers() {
-        return await this.getData('customers');
+        return await this.getFile('customers.json');
     }
 
-    async saveCustomer(customerData, id = null) {
-        return await this.saveData('customers', customerData, id);
+    async saveCustomers(customers) {
+        return await this.saveFile('customers.json', customers);
     }
 
-    // User operations
     async getUsers() {
-        return await this.getData('users');
+        return await this.getFile('users.json');
+    }
+
+    async authenticate(username, password) {
+        const users = await this.getUsers();
+        const user = users.find(u => u.username === username && u.password === password);
+        
+        if (user) {
+            sessionStorage.setItem('nkumbise_user', JSON.stringify({
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                role: user.role,
+                email: user.email
+            }));
+            return user;
+        }
+        
+        return null;
+    }
+
+    // Add new loan
+    async addLoan(loanData) {
+        const loans = await this.getLoans();
+        const newLoan = {
+            id: 'LOAN-' + Date.now(),
+            ...loanData,
+            currency: 'TZS',
+            status: 'pending',
+            created: new Date().toISOString(),
+            createdBy: JSON.parse(sessionStorage.getItem('nkumbise_user'))?.username || 'system'
+        };
+        
+        loans.push(newLoan);
+        await this.saveLoans(loans);
+        return newLoan;
     }
 
     // Currency conversion
