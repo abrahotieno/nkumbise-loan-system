@@ -1,950 +1,877 @@
-// Dashboard Functionality for Nkumbise Investment
-let currentUser = null;
-let currentView = 'welcome';
-
-function initDashboard(user) {
-    currentUser = user;
-    
-    // Load initial statistics
-    loadDashboardStats();
-    
-    // Setup event listeners
-    setupEventListeners();
-    
-    // Load default view based on role
-    loadDefaultView();
-}
-
-function setupEventListeners() {
-    // Update last update time
-    setInterval(() => {
-        document.getElementById('lastUpdateTime').textContent = 
-            new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }, 60000);
-}
-
-function loadDefaultView() {
-    switch(currentUser.role) {
-        case 'admin':
-            loadView('admin-overview');
-            break;
-        case 'partner':
-            loadView('partner-dashboard');
-            break;
-        case 'account':
-            loadView('accountant-overview');
-            break;
-        case 'support':
-            loadView('support-dashboard');
-            break;
-        default:
-            showWelcomeScreen();
-    }
-}
-
-window.loadView = function(viewName) {
-    currentView = viewName;
-    
-    // Hide all views
-    document.querySelectorAll('.view-container').forEach(view => {
-        view.classList.remove('active');
-    });
-    
-    // Remove active class from all menu items
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    // Add active class to clicked menu item
-    if (event && event.target.closest('.menu-item')) {
-        event.target.closest('.menu-item').classList.add('active');
-    }
-    
-    // Update dashboard title
-    updateDashboardTitle(viewName);
-    
-    // Load specific view
-    switch(viewName) {
-        case 'admin-overview':
-            loadAdminOverview();
-            break;
-        case 'admin-users':
-            loadUserManagement();
-            break;
-        case 'admin-activities':
-            loadActivityLog();
-            break;
-        case 'admin-settings':
-            loadSystemSettings();
-            break;
-        case 'partner-dashboard':
-            loadPartnerDashboard();
-            break;
-        case 'partner-loans':
-            loadPartnerLoans();
-            break;
-        case 'partner-add-loan':
-            loadAddLoanForm();
-            break;
-        case 'partner-repayments':
-            loadRepayments();
-            break;
-        case 'partner-customers':
-            loadCustomers();
-            break;
-        case 'accountant-overview':
-            loadAccountantOverview();
-            break;
-        case 'accountant-reports':
-            loadProfitReports();
-            break;
-        case 'accountant-investors':
-            loadInvestorDistribution();
-            break;
-        case 'accountant-export':
-            loadExportData();
-            break;
-        case 'support-dashboard':
-            loadSupportDashboard();
-            break;
-        case 'support-applications':
-            loadSupportApplications();
-            break;
-        case 'support-customers':
-            loadCustomerContacts();
-            break;
-        case 'support-followups':
-            loadFollowUps();
-            break;
-        case 'profile':
-            loadProfile();
-            break;
-        case 'password-change':
-            window.showModal('passwordChangeModal');
-            return;
-        default:
-            showWelcomeScreen();
-    }
-};
-
-function updateDashboardTitle(viewName) {
-    const titles = {
-        'admin-overview': 'System Overview',
-        'admin-users': 'User Management',
-        'admin-activities': 'Activity Log',
-        'admin-settings': 'System Settings',
-        'partner-dashboard': 'Partner Dashboard',
-        'partner-loans': 'Loan Management',
-        'partner-add-loan': 'Add New Loan',
-        'partner-repayments': 'Repayment Tracking',
-        'partner-customers': 'Customer Management',
-        'accountant-overview': 'Financial Overview',
-        'accountant-reports': 'Profit Reports',
-        'accountant-investors': 'Investor Distribution',
-        'accountant-export': 'Export Data',
-        'support-dashboard': 'Support Dashboard',
-        'support-applications': 'Application Management',
-        'support-customers': 'Customer Contacts',
-        'support-followups': 'Follow-up Tasks',
-        'profile': 'My Profile'
-    };
-    
-    const title = titles[viewName] || 'Dashboard';
-    document.getElementById('dashboardTitle').querySelector('h2').textContent = title;
-}
-
-function showWelcomeScreen() {
-    const content = document.getElementById('dashboardContent');
-    content.innerHTML = `
-        <div class="welcome-screen" id="welcomeScreen">
-            <div class="welcome-content">
-                <h1>Welcome to Nkumbise Investment Dashboard</h1>
-                <p>Select a menu item to get started</p>
-                <div class="welcome-stats">
-                    <div class="stat-card">
-                        <i class="fas fa-users"></i>
-                        <h3 id="totalLoansStat">0</h3>
-                        <p>Total Loans</p>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-money-bill-wave"></i>
-                        <h3 id="totalAmountStat">$0</h3>
-                        <p>Total Loan Amount</p>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-chart-line"></i>
-                        <h3 id="totalProfitStat">$0</h3>
-                        <p>Total Profit</p>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-user-check"></i>
-                        <h3 id="activeLoansStat">0</h3>
-                        <p>Active Loans</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-async function loadDashboardStats() {
-    try {
-        // In production, this would fetch from your GitHub data
-        // For demo, use sample data
-        const stats = {
-            totalLoans: 48,
-            totalAmount: 75000,
-            totalProfit: 22500,
-            activeLoans: 12
+// Nkumbise Loan System - Dashboard Controller
+class DashboardController {
+    constructor() {
+        this.currentUser = null;
+        this.currentRole = null;
+        this.currentView = 'overview';
+        this.data = {
+            loans: [],
+            applications: [],
+            customers: [],
+            users: [],
+            activities: []
         };
         
-        // Update stats on welcome screen
-        document.getElementById('totalLoansStat').textContent = stats.totalLoans;
-        document.getElementById('totalAmountStat').textContent = '$' + stats.totalAmount.toLocaleString();
-        document.getElementById('totalProfitStat').textContent = '$' + stats.totalProfit.toLocaleString();
-        document.getElementById('activeLoansStat').textContent = stats.activeLoans;
+        this.initialize();
+    }
+
+    // ==================== INITIALIZATION ====================
+
+    async initialize() {
+        // Check if user is logged in
+        await this.checkAuth();
         
-    } catch (error) {
-        console.error('Error loading stats:', error);
+        // Initialize event listeners
+        this.setupEventListeners();
+        
+        // Load initial data
+        await this.loadAllData();
+        
+        // Update UI
+        this.updateUI();
+        
+        // Start auto-refresh
+        this.startAutoRefresh();
     }
-}
 
-// ===== ADMIN FUNCTIONS =====
-function loadAdminOverview() {
-    const content = document.getElementById('dashboardContent');
-    content.innerHTML = `
-        <div class="view-container active" id="adminOverview">
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-icon primary">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">4</div>
-                        <div class="stat-label">Active Users</div>
-                        <div class="stat-change positive">+1 this week</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon success">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">48</div>
-                        <div class="stat-label">Total Loans</div>
-                        <div class="stat-change positive">+12%</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon warning">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">8</div>
-                        <div class="stat-label">Pending Applications</div>
-                        <div class="stat-change negative">-2 today</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon danger">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">3</div>
-                        <div class="stat-label">Overdue Loans</div>
-                        <div class="stat-change positive">-1 today</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="dashboard-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Recent Activities</h3>
-                        <a href="#" onclick="loadView('admin-activities')">View All</a>
-                    </div>
-                    <div class="card-body">
-                        <div class="activity-feed" id="recentActivities">
-                            <!-- Activities will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3>System Status</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="system-status-list">
-                            <div class="status-item">
-                                <i class="fas fa-check-circle" style="color: #28a745;"></i>
-                                <span>Database Connection: <strong>Active</strong></span>
-                            </div>
-                            <div class="status-item">
-                                <i class="fas fa-check-circle" style="color: #28a745;"></i>
-                                <span>GitHub Sync: <strong>Connected</strong></span>
-                            </div>
-                            <div class="status-item">
-                                <i class="fas fa-check-circle" style="color: #28a745;"></i>
-                                <span>Web Hosting: <strong>Online</strong></span>
-                            </div>
-                            <div class="status-item">
-                                <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
-                                <span>Backup: <strong>Pending</strong></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h3>Quick Actions</h3>
-                </div>
-                <div class="card-body">
-                    <div class="quick-actions">
-                        <a href="#" class="action-button" onclick="loadView('admin-users')">
-                            <i class="fas fa-user-plus"></i>
-                            <span>Add New User</span>
-                        </a>
-                        <a href="#" class="action-button" onclick="loadView('admin-settings')">
-                            <i class="fas fa-cog"></i>
-                            <span>System Settings</span>
-                        </a>
-                        <a href="#" class="action-button">
-                            <i class="fas fa-download"></i>
-                            <span>Export Data</span>
-                        </a>
-                        <a href="#" class="action-button">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Generate Report</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    loadRecentActivities();
-}
-
-function loadRecentActivities() {
-    const activities = [
-        {
-            id: 1,
-            user: 'partner',
-            action: 'Added new loan',
-            details: 'Loan #L20241230001 for John Doe',
-            time: '10 minutes ago',
-            icon: 'fa-plus-circle'
-        },
-        {
-            id: 2,
-            user: 'support',
-            action: 'Updated application status',
-            details: 'APP20241229001 changed to Approved',
-            time: '1 hour ago',
-            icon: 'fa-check-circle'
-        },
-        {
-            id: 3,
-            user: 'account',
-            action: 'Recorded payment',
-            details: 'Payment of $65 received',
-            time: '2 hours ago',
-            icon: 'fa-money-check'
-        },
-        {
-            id: 4,
-            user: 'admin',
-            action: 'System maintenance',
-            details: 'Updated user permissions',
-            time: '3 hours ago',
-            icon: 'fa-tools'
+    async checkAuth() {
+        const userStr = sessionStorage.getItem('nkumbise_user');
+        
+        if (!userStr) {
+            // Not logged in, show login screen
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('dashboardContainer').style.display = 'none';
+            return false;
         }
-    ];
-    
-    const container = document.getElementById('recentActivities');
-    if (container) {
-        container.innerHTML = activities.map(activity => `
-            <div class="activity-item">
-                <div class="activity-icon">
-                    <i class="fas ${activity.icon}"></i>
-                </div>
-                <div class="activity-content">
-                    <div class="activity-title">${activity.action}</div>
-                    <div class="activity-description">${activity.details}</div>
-                    <div class="activity-time">
-                        <i class="far fa-user"></i> ${activity.user} • ${activity.time}
-                    </div>
-                </div>
-            </div>
-        `).join('');
+
+        this.currentUser = JSON.parse(userStr);
+        this.currentRole = this.currentUser.role;
+        
+        // Show dashboard
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboardContainer').style.display = 'block';
+        
+        // Update user info
+        this.updateUserInfo();
+        
+        return true;
     }
-}
 
-// ===== PARTNER FUNCTIONS =====
-function loadPartnerDashboard() {
-    const content = document.getElementById('dashboardContent');
-    content.innerHTML = `
-        <div class="view-container active" id="partnerDashboard">
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-icon primary">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">12</div>
-                        <div class="stat-label">My Active Loans</div>
-                        <div class="stat-change positive">+3 this week</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon success">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">$18,500</div>
-                        <div class="stat-label">Total Amount Managed</div>
-                        <div class="stat-change positive">+15%</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon warning">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">$650</div>
-                        <div class="stat-label">Expected Today</div>
-                        <div class="stat-change neutral">On track</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon danger">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">2</div>
-                        <div class="stat-label">Overdue Loans</div>
-                        <div class="stat-change negative">Need follow-up</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="dashboard-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Today's Collections</h3>
-                        <a href="#" onclick="loadView('partner-repayments')">View All</a>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Customer</th>
-                                        <th>Amount Due</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="todayCollections">
-                                    <!-- Collections will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Quick Add</h3>
-                    </div>
-                    <div class="card-body">
-                        <form id="quickAddForm">
-                            <div class="form-group">
-                                <label>Customer Name</label>
-                                <input type="text" class="form-control" placeholder="Enter customer name">
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Loan Amount</label>
-                                    <input type="number" class="form-control" placeholder="$">
-                                </div>
-                                <div class="form-group">
-                                    <label>Period (Days)</label>
-                                    <select class="form-control">
-                                        <option value="30">30 Days</option>
-                                        <option value="60">60 Days</option>
-                                        <option value="90">90 Days</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn-primary">
-                                <i class="fas fa-plus"></i> Add Loan
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="quick-actions">
-                <a href="#" class="action-button" onclick="loadView('partner-add-loan')">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Add New Loan</span>
-                </a>
-                <a href="#" class="action-button" onclick="loadView('partner-customers')">
-                    <i class="fas fa-user-friends"></i>
-                    <span>Customer List</span>
-                </a>
-                <a href="#" class="action-button">
-                    <i class="fas fa-phone"></i>
-                    <span>Make Calls</span>
-                </a>
-                <a href="#" class="action-button">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>Field Visits</span>
-                </a>
-            </div>
-        </div>
-    `;
-    
-    loadTodayCollections();
-}
+    // ==================== DATA LOADING ====================
 
-function loadTodayCollections() {
-    const collections = [
-        {
-            customer: 'John Doe',
-            amount: 65,
-            dueDate: 'Today',
-            status: 'pending',
-            contact: '+255123456789'
-        },
-        {
-            customer: 'Maria Kato',
-            amount: 66.67,
-            dueDate: 'Today',
-            status: 'paid',
-            contact: '+255987654321'
-        },
-        {
-            customer: 'Robert Kim',
-            amount: 50,
-            dueDate: 'Today',
-            status: 'overdue',
-            contact: '+255765432198'
+    async loadAllData() {
+        try {
+            // Show loading state
+            this.showLoading(true);
+            
+            // Load data in parallel
+            [this.data.loans, this.data.applications, this.data.customers, this.data.activities] = await Promise.all([
+                nkumbiseAPI.getLoans(),
+                nkumbiseAPI.getApplications(),
+                nkumbiseAPI.getCustomers(),
+                nkumbiseAPI.getActivities(10)
+            ]);
+            
+            // Log successful load
+            await nkumbiseAPI.logActivity('system', `${this.currentUser.name} loaded dashboard`, this.currentUser.username);
+            
+        } catch (error) {
+            console.error('Failed to load data:', error);
+            this.showError('Failed to load data. Working in offline mode.');
+        } finally {
+            this.showLoading(false);
         }
-    ];
-    
-    const container = document.getElementById('todayCollections');
-    if (container) {
-        container.innerHTML = collections.map(collection => `
-            <tr>
-                <td>
-                    <strong>${collection.customer}</strong><br>
-                    <small>${collection.contact}</small>
-                </td>
-                <td>$${collection.amount}</td>
-                <td>
-                    <span class="status-badge status-${collection.status}">
-                        ${collection.status.charAt(0).toUpperCase() + collection.status.slice(1)}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn-small" onclick="markAsPaid('${collection.customer}')">
-                        <i class="fas fa-check"></i> Mark Paid
-                    </button>
-                </td>
-            </tr>
-        `).join('');
     }
-}
 
-// ===== ACCOUNTANT FUNCTIONS =====
-function loadAccountantOverview() {
-    const content = document.getElementById('dashboardContent');
-    content.innerHTML = `
-        <div class="view-container active" id="accountantOverview">
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-icon primary">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">$75,000</div>
-                        <div class="stat-label">Total Loan Portfolio</div>
-                        <div class="stat-change positive">+12.5%</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon success">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">$22,500</div>
-                        <div class="stat-label">Total Profit</div>
-                        <div class="stat-change positive">+8.2%</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon warning">
-                        <i class="fas fa-share-alt"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">70/30</div>
-                        <div class="stat-label">Investor/Partner Split</div>
-                        <div class="stat-change neutral">Stable</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon danger">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">$1,250</div>
-                        <div class="stat-label">Outstanding Dues</div>
-                        <div class="stat-change negative">-3%</div>
-                    </div>
-                </div>
-            </div>
+    // ==================== UI UPDATES ====================
+
+    updateUI() {
+        this.updateStatistics();
+        this.updateLoansTable();
+        this.updateApplicationsTable();
+        this.updateActivitiesList();
+        this.updateQuickActions();
+        this.updateDate();
+        this.showRoleView();
+    }
+
+    updateStatistics() {
+        const stats = this.calculateStatistics();
+        
+        // Update DOM elements
+        document.getElementById('statTotalLoans').textContent = stats.totalLoans;
+        document.getElementById('statTotalAmount').textContent = nkumbiseAPI.formatTZS(stats.totalLoanAmount);
+        document.getElementById('statActiveLoans').textContent = stats.activeLoans;
+        document.getElementById('statTotalProfit').textContent = nkumbiseAPI.formatTZS(stats.totalProfit);
+        
+        // Update USD equivalents
+        document.querySelectorAll('.stat-usd').forEach(span => {
+            const parentText = span.previousElementSibling?.textContent || '';
+            const tzsMatch = parentText.match(/TZS ([\d,]+)/);
             
-            <div class="dashboard-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Monthly Profit Trend</h3>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="profitChart" height="250"></canvas>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Recent Transactions</h3>
-                        <a href="#" onclick="loadView('accountant-reports')">View All</a>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Description</th>
-                                        <th>Amount</th>
-                                        <th>Type</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recentTransactions">
-                                    <!-- Transactions will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    loadRecentTransactions();
-    renderProfitChart();
-}
-
-function loadRecentTransactions() {
-    const transactions = [
-        {
-            date: '2024-12-30',
-            description: 'Loan disbursement - John Doe',
-            amount: 1500,
-            type: 'disbursement'
-        },
-        {
-            date: '2024-12-30',
-            description: 'Repayment - Maria Kato',
-            amount: 66.67,
-            type: 'repayment'
-        },
-        {
-            date: '2024-12-29',
-            description: 'Partner commission - James',
-            amount: 135,
-            type: 'commission'
-        },
-        {
-            date: '2024-12-29',
-            description: 'Investor distribution',
-            amount: 315,
-            type: 'distribution'
-        }
-    ];
-    
-    const container = document.getElementById('recentTransactions');
-    if (container) {
-        container.innerHTML = transactions.map(trans => `
-            <tr>
-                <td>${trans.date}</td>
-                <td>${trans.description}</td>
-                <td>$${trans.amount}</td>
-                <td>
-                    <span class="status-badge ${
-                        trans.type === 'repayment' ? 'status-active' :
-                        trans.type === 'disbursement' ? 'status-pending' :
-                        'status-completed'
-                    }">
-                        ${trans.type.charAt(0).toUpperCase() + trans.type.slice(1)}
-                    </span>
-                </td>
-            </tr>
-        `).join('');
-    }
-}
-
-function renderProfitChart() {
-    const ctx = document.getElementById('profitChart');
-    if (!ctx) return;
-    
-    new Chart(ctx.getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            datasets: [{
-                label: 'Monthly Profit',
-                data: [3200, 4200, 5100, 5800, 6200, 7500],
-                borderColor: '#2d5be3',
-                backgroundColor: 'rgba(45, 91, 227, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        display: true
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
+            if (tzsMatch) {
+                const tzsAmount = parseFloat(tzsMatch[1].replace(/,/g, ''));
+                if (!isNaN(tzsAmount)) {
+                    span.textContent = `≈ ${nkumbiseAPI.formatUSD(tzsAmount)}`;
                 }
             }
-        }
-    });
-}
+        });
+    }
 
-// ===== SUPPORT FUNCTIONS =====
-function loadSupportDashboard() {
-    const content = document.getElementById('dashboardContent');
-    content.innerHTML = `
-        <div class="view-container active" id="supportDashboard">
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-icon primary">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">8</div>
-                        <div class="stat-label">Pending Applications</div>
-                        <div class="stat-change positive">-2 today</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon success">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">24</div>
-                        <div class="stat-label">Today's Calls</div>
-                        <div class="stat-change positive">+40%</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon warning">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">15</div>
-                        <div class="stat-label">Follow-ups</div>
-                        <div class="stat-change negative">+3 new</div>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-icon danger">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">92%</div>
-                        <div class="stat-label">Satisfaction Rate</div>
-                        <div class="stat-change positive">+2%</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="dashboard-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Recent Applications</h3>
-                        <a href="#" onclick="loadView('support-applications')">View All</a>
-                    </div>
-                    <div class="card-body">
-                        <div class="application-list" id="recentApplications">
-                            <!-- Applications will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Today's Follow-ups</h3>
-                        <a href="#" onclick="loadView('support-followups')">View All</a>
-                    </div>
-                    <div class="card-body">
-                        <div class="followup-list" id="todayFollowups">
-                            <!-- Follow-ups will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="quick-actions">
-                <a href="#" class="action-button" onclick="loadView('support-applications')">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Review Applications</span>
-                </a>
-                <a href="#" class="action-button" onclick="loadView('support-customers')">
-                    <i class="fas fa-address-book"></i>
-                    <span>Customer Contacts</span>
-                </a>
-                <a href="#" class="action-button">
-                    <i class="fas fa-phone"></i>
-                    <span>Make Calls</span>
-                </a>
-                <a href="#" class="action-button">
-                    <i class="fas fa-whatsapp"></i>
-                    <span>WhatsApp Messages</span>
-                </a>
-            </div>
-        </div>
-    `;
-    
-    loadRecentApplications();
-    loadTodayFollowups();
-}
+    calculateStatistics() {
+        const totalLoanAmount = this.data.loans.reduce((sum, loan) => sum + (parseFloat(loan.amount) || 0), 0);
+        const activeLoans = this.data.loans.filter(loan => loan.status === 'active').length;
+        const pendingApps = this.data.applications.filter(app => 
+            app.status === 'submitted' || app.status === 'pending'
+        ).length;
+        
+        // Calculate profit (example: 70% of total interest)
+        const totalInterest = this.data.loans.reduce((sum, loan) => sum + (parseFloat(loan.interest) || 0), 0);
+        const totalProfit = totalInterest * 0.7;
 
-function loadRecentApplications() {
-    const applications = [
-        {
-            id: 'APP20241230001',
-            name: 'John Doe',
-            amount: 1500,
-            status: 'review',
-            applied: '2 hours ago'
-        },
-        {
-            id: 'APP20241230002',
-            name: 'Sarah Johnson',
-            amount: 2500,
-            status: 'pending',
-            applied: '4 hours ago'
-        },
-        {
-            id: 'APP20241230003',
-            name: 'Michael Chen',
-            amount: 1000,
-            status: 'approved',
-            applied: '6 hours ago'
+        return {
+            totalLoans: this.data.loans.length,
+            totalLoanAmount: totalLoanAmount,
+            activeLoans: activeLoans,
+            pendingApplications: pendingApps,
+            totalCustomers: this.data.customers.length,
+            totalProfit: totalProfit
+        };
+    }
+
+    updateLoansTable() {
+        const tableBody = document.getElementById('loansTable');
+        if (!tableBody) return;
+
+        // Filter loans based on role
+        let loansToShow = this.data.loans;
+        
+        if (this.currentRole === 'partner') {
+            // Partner only sees their loans
+            loansToShow = loansToShow.filter(loan => loan.partner === this.currentUser.username);
         }
-    ];
-    
-    const container = document.getElementById('recentApplications');
-    if (container) {
-        container.innerHTML = applications.map(app => `
-            <div class="application-card">
-                <div class="application-header">
-                    <div>
-                        <strong>${app.name}</strong><br>
-                        <small>#${app.id}</small>
-                    </div>
-                    <span class="status-badge status-${app.status}">
-                        ${app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+        
+        // Sort by date (newest first)
+        loansToShow.sort((a, b) => new Date(b.created) - new Date(a.created));
+        
+        // Take only recent 5 loans for overview
+        const recentLoans = loansToShow.slice(0, 5);
+
+        if (recentLoans.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 3rem; color: #6c757d;">
+                        <i class="fas fa-database" style="font-size: 2rem; margin-bottom: 1rem; display: block; color: #e0e0e0;"></i>
+                        No loans found. Add your first loan to get started.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = recentLoans.map(loan => `
+            <tr>
+                <td><strong>${loan.id || loan.loanId}</strong></td>
+                <td>
+                    <div>${loan.customerName || 'Unknown Customer'}</div>
+                    <small class="text-muted">${loan.phone || ''}</small>
+                </td>
+                <td>
+                    <div>${nkumbiseAPI.formatTZS(loan.amount)}</div>
+                    <small class="text-primary">${nkumbiseAPI.formatUSD(loan.amount)}</small>
+                </td>
+                <td>
+                    <span class="status-badge ${this.getStatusClass(loan.status)}">
+                        ${this.formatStatus(loan.status)}
                     </span>
-                </div>
-                <div class="application-info">
-                    <div class="application-row">
-                        <span>Loan Amount</span>
-                        <strong>$${app.amount}</strong>
-                    </div>
-                    <div class="application-row">
-                        <span>Applied</span>
-                        <span>${app.applied}</span>
-                    </div>
-                </div>
-                <div class="application-actions">
-                    <button class="btn-small" onclick="reviewApplication('${app.id}')">
-                        <i class="fas fa-eye"></i> Review
-                    </button>
-                    <button class="btn-small">
-                        <i class="fas fa-phone"></i> Call
-                    </button>
-                </div>
-            </div>
+                </td>
+                <td>${this.formatDate(loan.dueDate || loan.created)}</td>
+            </tr>
         `).join('');
     }
-}
 
-// ===== HELPER FUNCTIONS =====
-function markAsPaid(customerName) {
-    if (confirm(`Mark ${customerName}'s payment as received?`)) {
-        alert(`Payment marked as received for ${customerName}`);
-        // In production, update your GitHub data
+    updateApplicationsTable() {
+        // Only show in applications view
+        const tableBody = document.getElementById('applicationsTable');
+        if (!tableBody) return;
+
+        let appsToShow = this.data.applications;
+        
+        if (this.currentRole === 'partner') {
+            appsToShow = appsToShow.filter(app => app.assignedTo === this.currentUser.username);
+        }
+        
+        if (this.currentRole === 'support') {
+            appsToShow = appsToShow.filter(app => app.status === 'submitted');
+        }
+
+        if (appsToShow.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 3rem; color: #6c757d;">
+                        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block; color: #e0e0e0;"></i>
+                        No applications found.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = appsToShow.slice(0, 10).map(app => `
+            <tr>
+                <td><strong>${app.applicationId || app.id}</strong></td>
+                <td>${app.fullName || 'Applicant'}</td>
+                <td>${nkumbiseAPI.formatTZS(app.loanAmount)}</td>
+                <td>${app.loanPurpose || 'Not specified'}</td>
+                <td>
+                    <span class="status-badge ${this.getStatusClass(app.status)}">
+                        ${this.formatStatus(app.status)}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn-action view-app" data-id="${app.id}" title="View">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${this.currentRole === 'partner' || this.currentRole === 'admin' ? `
+                    <button class="btn-action approve-app" data-id="${app.id}" title="Approve">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `).join('');
+
+        // Add event listeners to action buttons
+        this.setupTableActions();
+    }
+
+    updateActivitiesList() {
+        const activityList = document.getElementById('activityList');
+        if (!activityList) return;
+
+        if (this.data.activities.length === 0) {
+            activityList.innerHTML = `
+                <li class="activity-item">
+                    <div class="activity-content">
+                        <div class="activity-text">No activities recorded yet</div>
+                        <div class="activity-time">System will log activities automatically</div>
+                    </div>
+                </li>
+            `;
+            return;
+        }
+
+        activityList.innerHTML = this.data.activities.map(activity => `
+            <li class="activity-item">
+                <div class="activity-icon ${this.getActivityIconClass(activity.type)}">
+                    <i class="fas fa-${this.getActivityIcon(activity.type)}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">${activity.message}</div>
+                    <div class="activity-time">${this.formatTimeAgo(activity.timestamp)} by ${activity.user}</div>
+                </div>
+            </li>
+        `).join('');
+    }
+
+    updateQuickActions() {
+        const quickActions = document.getElementById('quickActions');
+        if (!quickActions) return;
+
+        const actions = this.getRoleQuickActions();
+        
+        quickActions.innerHTML = actions.map(action => `
+            <button class="action-btn" onclick="${action.onclick}">
+                <i class="fas fa-${action.icon}"></i>
+                ${action.label}
+            </button>
+        `).join('');
+    }
+
+    getRoleQuickActions() {
+        const baseActions = [
+            {
+                icon: 'sync-alt',
+                label: 'Refresh Data',
+                onclick: 'dashboard.refreshData()'
+            },
+            {
+                icon: 'download',
+                label: 'Export Report',
+                onclick: 'dashboard.exportReport()'
+            }
+        ];
+
+        switch(this.currentRole) {
+            case 'partner':
+                return [
+                    {
+                        icon: 'plus-circle',
+                        label: 'Add New Loan',
+                        onclick: "showView('addLoan')"
+                    },
+                    {
+                        icon: 'user-plus',
+                        label: 'Add Customer',
+                        onclick: "showView('addCustomer')"
+                    },
+                    ...baseActions
+                ];
+
+            case 'accountant':
+                return [
+                    {
+                        icon: 'receipt',
+                        label: 'Process Payments',
+                        onclick: "showView('payments')"
+                    },
+                    {
+                        icon: 'chart-line',
+                        label: 'Financial Report',
+                        onclick: "showView('financialReport')"
+                    },
+                    ...baseActions
+                ];
+
+            case 'support':
+                return [
+                    {
+                        icon: 'inbox',
+                        label: 'Check Applications',
+                        onclick: "showView('applications')"
+                    },
+                    {
+                        icon: 'headset',
+                        label: 'Customer Support',
+                        onclick: "showView('support')"
+                    },
+                    ...baseActions
+                ];
+
+            case 'admin':
+                return [
+                    {
+                        icon: 'users-cog',
+                        label: 'Manage Users',
+                        onclick: "showView('users')"
+                    },
+                    {
+                        icon: 'cog',
+                        label: 'System Settings',
+                        onclick: "showView('settings')"
+                    },
+                    ...baseActions
+                ];
+
+            default:
+                return baseActions;
+        }
+    }
+
+    updateUserInfo() {
+        if (!this.currentUser) return;
+
+        document.getElementById('userName').textContent = this.currentUser.name;
+        document.getElementById('userRole').textContent = this.formatRole(this.currentUser.role);
+        document.getElementById('userAvatar').textContent = this.currentUser.name.charAt(0).toUpperCase();
+        document.getElementById('dashboardTitle').textContent = `${this.formatRole(this.currentUser.role)} Dashboard`;
+    }
+
+    updateDate() {
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('en-TZ', options);
+    }
+
+    // ==================== VIEW MANAGEMENT ====================
+
+    showRoleView() {
+        // Hide all role views
+        document.querySelectorAll('.admin-view, .partner-view, .accountant-view, .support-view').forEach(el => {
+            el.classList.remove('view-active');
+        });
+
+        // Show current role's view
+        const roleView = document.querySelector(`.${this.currentRole}-view`);
+        if (roleView) {
+            roleView.classList.add('view-active');
+        }
+
+        // Update nav items
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Activate current view
+        const currentNav = document.querySelector(`.nav-item[onclick*="${this.currentView}"]`);
+        if (currentNav) {
+            currentNav.classList.add('active');
+        }
+    }
+
+    async showView(viewName) {
+        this.currentView = viewName;
+        
+        // Update title
+        const titles = {
+            'overview': 'Dashboard Overview',
+            'addLoan': 'Add New Loan',
+            'myLoans': 'My Loans',
+            'applications': 'Loan Applications',
+            'customers': 'Customer Management',
+            'users': 'User Management',
+            'reports': 'System Reports',
+            'settings': 'System Settings',
+            'profile': 'My Profile'
+        };
+        
+        document.getElementById('dashboardTitle').textContent = titles[viewName] || viewName;
+        
+        // Show the appropriate content
+        this.showViewContent(viewName);
+        
+        // Update navigation
+        this.showRoleView();
+    }
+
+    showViewContent(viewName) {
+        // Hide all views
+        document.querySelectorAll('[id$="View"]').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // Show requested view
+        const viewElement = document.getElementById(`${viewName}View`);
+        if (viewElement) {
+            viewElement.style.display = 'block';
+            
+            // Load view-specific data
+            this.loadViewData(viewName);
+        } else {
+            // Show overview as fallback
+            this.showViewContent('overview');
+        }
+    }
+
+    async loadViewData(viewName) {
+        switch(viewName) {
+            case 'applications':
+                await this.loadApplicationsData();
+                break;
+            case 'customers':
+                await this.loadCustomersData();
+                break;
+            case 'myLoans':
+                await this.loadMyLoansData();
+                break;
+            case 'reports':
+                await this.loadReportsData();
+                break;
+        }
+    }
+
+    // ==================== DATA OPERATIONS ====================
+
+    async addNewLoan(loanData) {
+        try {
+            // Add TZS currency and partner info
+            const completeLoanData = {
+                ...loanData,
+                partner: this.currentUser.username,
+                partnerName: this.currentUser.name,
+                currency: 'TZS',
+                exchangeRate: 2500
+            };
+
+            const result = await nkumbiseAPI.addLoan(completeLoanData);
+            
+            if (result) {
+                // Refresh data
+                await this.loadAllData();
+                this.updateUI();
+                
+                // Log activity
+                await nkumbiseAPI.logActivity(
+                    'loan',
+                    `Added new loan for ${loanData.customerName} - ${nkumbiseAPI.formatTZS(loanData.amount)}`,
+                    this.currentUser.username
+                );
+                
+                this.showSuccess('Loan added successfully!');
+                this.showView('overview');
+                
+                return true;
+            }
+        } catch (error) {
+            this.showError('Failed to add loan: ' + error.message);
+            return false;
+        }
+    }
+
+    async addNewApplication(appData) {
+        try {
+            const result = await nkumbiseAPI.addApplication(appData);
+            
+            if (result) {
+                await this.loadAllData();
+                this.updateUI();
+                
+                await nkumbiseAPI.logActivity(
+                    'application',
+                    `New application received from ${appData.fullName}`,
+                    'system'
+                );
+                
+                this.showSuccess('Application submitted successfully!');
+                return true;
+            }
+        } catch (error) {
+            this.showError('Failed to submit application: ' + error.message);
+            return false;
+        }
+    }
+
+    async approveApplication(appId) {
+        try {
+            const app = this.data.applications.find(a => a.id === appId);
+            if (!app) {
+                throw new Error('Application not found');
+            }
+
+            // Convert application to loan
+            const loanData = {
+                customerName: app.fullName,
+                phone: app.phone,
+                amount: app.loanAmount,
+                purpose: app.loanPurpose,
+                term: app.loanTerm,
+                interestRate: app.interestRate || 12,
+                status: 'approved',
+                applicationId: appId
+            };
+
+            await this.addNewLoan(loanData);
+            
+            // Update application status
+            await nkumbiseAPI.updateApplication(appId, { 
+                status: 'approved',
+                approvedBy: this.currentUser.username,
+                approvedAt: new Date().toISOString()
+            });
+
+            this.showSuccess('Application approved and loan created!');
+            
+        } catch (error) {
+            this.showError('Failed to approve application: ' + error.message);
+        }
+    }
+
+    // ==================== UTILITY METHODS ====================
+
+    getStatusClass(status) {
+        const statusClasses = {
+            'pending': 'badge-warning',
+            'submitted': 'badge-info',
+            'approved': 'badge-success',
+            'active': 'badge-success',
+            'rejected': 'badge-danger',
+            'completed': 'badge-info',
+            'default': 'badge-danger'
+        };
+        
+        return statusClasses[status] || statusClasses.default;
+    }
+
+    formatStatus(status) {
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+
+    formatRole(role) {
+        const roleNames = {
+            'admin': 'Administrator',
+            'partner': 'Field Partner',
+            'accountant': 'Accountant',
+            'support': 'Support Staff'
+        };
+        
+        return roleNames[role] || role;
+    }
+
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-TZ', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+
+    formatTimeAgo(timestamp) {
+        const now = new Date();
+        const past = new Date(timestamp);
+        const diff = now - past;
+        
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        
+        return this.formatDate(timestamp);
+    }
+
+    getActivityIcon(type) {
+        const icons = {
+            'system': 'cog',
+            'loan': 'file-invoice-dollar',
+            'application': 'file-alt',
+            'payment': 'money-check-alt',
+            'customer': 'user',
+            'user': 'user-cog',
+            'security': 'shield-alt',
+            'default': 'bell'
+        };
+        
+        return icons[type] || icons.default;
+    }
+
+    getActivityIconClass(type) {
+        const colors = {
+            'system': 'bg-primary',
+            'loan': 'bg-success',
+            'application': 'bg-info',
+            'payment': 'bg-warning',
+            'customer': 'bg-secondary',
+            'default': 'bg-light'
+        };
+        
+        return `activity-icon ${colors[type] || colors.default}`;
+    }
+
+    // ==================== UI HELPERS ====================
+
+    showLoading(show) {
+        const loader = document.getElementById('loader') || this.createLoader();
+        loader.style.display = show ? 'block' : 'none';
+    }
+
+    createLoader() {
+        const loader = document.createElement('div');
+        loader.id = 'loader';
+        loader.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                <div class="loading" style="width: 50px; height: 50px;"></div>
+            </div>
+        `;
+        document.body.appendChild(loader);
+        return loader;
+    }
+
+    showSuccess(message) {
+        this.showNotification(message, 'success');
+    }
+
+    showError(message) {
+        this.showNotification(message, 'error');
+    }
+
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div style="position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; background: ${type === 'success' ? '#d4edda' : '#f8d7da'}; color: ${type === 'success' ? '#155724' : '#721c24'}; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10000; display: flex; align-items: center; gap: 10px; max-width: 400px;">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+
+    // ==================== EVENT HANDLERS ====================
+
+    setupEventListeners() {
+        // Login form
+        document.getElementById('loginForm')?.addEventListener('submit', (e) => this.handleLogin(e));
+        
+        // Role selection
+        document.querySelectorAll('.role-option').forEach(btn => {
+            btn.addEventListener('click', () => this.handleRoleSelect(btn));
+        });
+        
+        // Logout
+        document.querySelector('.logout-btn')?.addEventListener('click', () => this.handleLogout());
+        
+        // Global refresh shortcut (Ctrl + R)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                this.refreshData();
+            }
+        });
+    }
+
+    setupTableActions() {
+        // View application buttons
+        document.querySelectorAll('.view-app').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const appId = e.target.closest('button').dataset.id;
+                this.viewApplication(appId);
+            });
+        });
+        
+        // Approve application buttons
+        document.querySelectorAll('.approve-app').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const appId = e.target.closest('button').dataset.id;
+                if (confirm('Are you sure you want to approve this application?')) {
+                    await this.approveApplication(appId);
+                }
+            });
+        });
+    }
+
+    async handleLogin(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        try {
+            const user = await nkumbiseAPI.authenticate(username, password);
+            
+            if (user) {
+                this.currentUser = user;
+                this.currentRole = user.role;
+                
+                // Store in session
+                sessionStorage.setItem('nkumbise_user', JSON.stringify(user));
+                
+                // Hide login, show dashboard
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboardContainer').style.display = 'block';
+                
+                // Initialize dashboard
+                await this.initialize();
+                
+                // Log login activity
+                await nkumbiseAPI.logActivity('security', `${user.name} logged in`, user.username);
+                
+            } else {
+                document.getElementById('loginError').textContent = 'Invalid username or password';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        } catch (error) {
+            document.getElementById('loginError').textContent = 'Login failed. Please try again.';
+            document.getElementById('loginError').style.display = 'block';
+        }
+    }
+
+    handleRoleSelect(button) {
+        // Update UI
+        document.querySelectorAll('.role-option').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        button.classList.add('active');
+        
+        // Update form placeholder based on role
+        const role = button.dataset.role;
+        const usernameInput = document.getElementById('username');
+        
+        const placeholders = {
+            'admin': 'Enter admin username',
+            'partner': 'Enter partner username',
+            'accountant': 'Enter accountant username',
+            'support': 'Enter support username'
+        };
+        
+        if (usernameInput && placeholders[role]) {
+            usernameInput.placeholder = placeholders[role];
+        }
+    }
+
+    handleLogout() {
+        if (confirm('Are you sure you want to logout?')) {
+            sessionStorage.removeItem('nkumbise_user');
+            sessionStorage.removeItem('nkumbise_gh_token');
+            window.location.reload();
+        }
+    }
+
+    // ==================== PUBLIC METHODS ====================
+
+    async refreshData() {
+        await this.loadAllData();
+        this.updateUI();
+        this.showSuccess('Data refreshed successfully');
+    }
+
+    async exportReport() {
+        // Basic export functionality
+        const stats = this.calculateStatistics();
+        const report = {
+            title: `Nkumbise Investment Report - ${new Date().toLocaleDateString()}`,
+            generatedBy: this.currentUser.name,
+            generatedAt: new Date().toISOString(),
+            statistics: stats,
+            loansCount: this.data.loans.length,
+            applicationsCount: this.data.applications.length,
+            customersCount: this.data.customers.length
+        };
+        
+        // Create download link
+        const dataStr = JSON.stringify(report, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const link = document.createElement('a');
+        link.setAttribute('href', dataUri);
+        link.setAttribute('download', `nkumbise-report-${Date.now()}.json`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        this.showSuccess('Report exported successfully');
+    }
+
+    startAutoRefresh() {
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                this.refreshData();
+            }
+        }, 300000);
     }
 }
 
-function reviewApplication(appId) {
-    alert(`Reviewing application ${appId}`);
-    // In production, load application details
-}
-
-// ===== PLACEHOLDER FUNCTIONS =====
-function loadUserManagement() { showPlaceholder('User Management'); }
-function loadActivityLog() { showPlaceholder('Activity Log'); }
-function loadSystemSettings() { showPlaceholder('System Settings'); }
-function loadPartnerLoans() { showPlaceholder('Partner Loans'); }
-function loadAddLoanForm() { showPlaceholder('Add Loan Form'); }
-function loadRepayments() { showPlaceholder('Repayments'); }
-function loadCustomers() { showPlaceholder('Customers'); }
-function loadProfitReports() { showPlaceholder('Profit Reports'); }
-function loadInvestorDistribution() { showPlaceholder('Investor Distribution'); }
-function loadExportData() { showPlaceholder('Export Data'); }
-function loadSupportApplications() { showPlaceholder('Support Applications'); }
-function loadCustomerContacts() { showPlaceholder('Customer Contacts'); }
-function loadFollowUps() { showPlaceholder('Follow-ups'); }
-function loadProfile() { showPlaceholder('My Profile'); }
-function loadTodayFollowups() { /* Implementation similar to others */ }
-
-function showPlaceholder(title) {
-    const content = document.getElementById('dashboardContent');
-    content.innerHTML = `
-        <div class="view-container active">
-            <div class="placeholder-content">
-                <i class="fas fa-cogs" style="font-size: 4rem; color: #e0e0e0; margin-bottom: 2rem;"></i>
-                <h2>${title}</h2>
-                <p>This section is under development. In production, this would connect to your GitHub data.</p>
-                <div class="placeholder-actions">
-                    <button class="btn-primary" onclick="loadView('${currentUser.role}-dashboard')">
-                        <i class="fas fa-arrow-left"></i> Return to Dashboard
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-}
+// Initialize dashboard when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.dashboard = new DashboardController();
+    
+    // Make showView function globally available
+    window.showView = (viewName) => {
+        if (window.dashboard) {
+            window.dashboard.showView(viewName);
+        }
+    };
+    
+    // Make logout function globally available
+    window.logout = () => {
+        if (window.dashboard) {
+            window.dashboard.handleLogout();
+        }
+    };
+});
