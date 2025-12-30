@@ -3,373 +3,186 @@ class NkumbiseAPI {
     constructor() {
         this.owner = 'abrahotieno';
         this.repo = 'nkumbise-loan-system';
-        this.apiCache = new Map();
-        this.cacheDuration = 30000; // 30 seconds cache
+        this.cache = {};
     }
 
-    // ==================== CORE API METHODS ====================
-
-    // Send request to GitHub Actions API
-    async _sendToGitHub(action, dataType, data = null, id = null, operation = 'add') {
-        const payload = {
-            action: action,
-            dataType: dataType,
-            data: data,
-            id: id,
-            operation: operation,
-            timestamp: new Date().toISOString()
-        };
-
+    // Get data from GitHub Pages
+    async getData(type) {
         try {
-            const response = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/dispatches`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `token ${this._getToken()}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    event_type: 'loan-api-request',
-                    client_payload: payload
-                })
-            });
-
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`GitHub API error ${response.status}: ${error}`);
-            }
-
-            console.log(`GitHub Action triggered for ${action} ${dataType}`);
-
-            // Wait for action to complete and data to update
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Clear cache for this data type
-            this.apiCache.delete(dataType);
-
-            // Return fresh data
-            return await this._getFromGitHubPages(dataType);
-
-        } catch (error) {
-            console.error('GitHub API request failed:', error);
-            
-            // Fallback to localStorage for offline mode
-            return this._getFromLocalStorage(dataType);
-        }
-    }
-
-    // Get data from GitHub Pages (public URL)
-    async _getFromGitHubPages(dataType) {
-        const cacheKey = `github-${dataType}`;
-        const now = Date.now();
-        
-        // Check cache
-        if (this.apiCache.has(cacheKey)) {
-            const cached = this.apiCache.get(cacheKey);
-            if (now - cached.timestamp < this.cacheDuration) {
-                return cached.data;
-            }
-        }
-
-        try {
-            const url = `https://${this.owner}.github.io/${this.repo}/data/${dataType}.json?_=${now}`;
+            const url = `https://${this.owner}.github.io/${this.repo}/data/${type}.json`;
             const response = await fetch(url);
             
             if (!response.ok) {
                 if (response.status === 404) {
-                    // File doesn't exist yet, return empty array
+                    // File doesn't exist yet
                     return [];
                 }
                 throw new Error(`HTTP ${response.status}`);
             }
 
             const data = await response.json();
-            
-            // Cache the data
-            this.apiCache.set(cacheKey, {
-                data: data,
-                timestamp: now
-            });
-
-            // Also update localStorage as backup
-            this._saveToLocalStorage(dataType, data);
-
-            return data;
-
+            return Array.isArray(data) ? data : [];
         } catch (error) {
-            console.warn(`Failed to fetch ${dataType} from GitHub Pages:`, error);
+            console.warn(`Failed to load ${type}:`, error);
             
             // Fallback to localStorage
-            return this._getFromLocalStorage(dataType);
+            return this.getLocalData(type);
         }
     }
 
-    // ==================== LOCAL STORAGE HELPERS ====================
-
-    _getFromLocalStorage(dataType) {
+    // Save data via GitHub API
+    async saveData(type, data, id = null) {
         try {
-            const data = localStorage.getItem(`nkumbise_${dataType}`);
-            return data ? JSON.parse(data) : [];
+            const token = this.getToken();
+            if (!token) {
+                throw new Error('GitHub token not set');
+            }
+
+            const response = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/dispatches`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    event_type: 'loan-api-request',
+                    client_payload: {
+                        action: 'save',
+                        type: type,
+                        data: data,
+                        id: id,
+                        timestamp: new Date().toISOString()
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+
+            console.log(`Data saved to GitHub: ${type}`);
+            
+            // Wait for GitHub Action to process
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Return updated data
+            return await this.getData(type);
+
         } catch (error) {
-            console.error(`Failed to get ${dataType} from localStorage:`, error);
+            console.error('Save failed:', error);
+            
+            // Fallback to localStorage
+            return this.saveLocalData(type, data, id);
+        }
+    }
+
+    // Local storage fallback
+    getLocalData(type) {
+        try {
+            const data = localStorage.getItem(`nkumbise_${type}`);
+            return data ? JSON.parse(data) : [];
+        } catch {
             return [];
         }
     }
 
-    _saveToLocalStorage(dataType, data) {
+    saveLocalData(type, newData, id = null) {
         try {
-            localStorage.setItem(`nkumbise_${dataType}`, JSON.stringify(data));
-        } catch (error) {
-            console.error(`Failed to save ${dataType} to localStorage:`, error);
-        }
-    }
-
-    // ==================== PUBLIC API METHODS ====================
-
-    // LOAN MANAGEMENT
-    async getLoans(filters = {}) {
-        const loans = await this._getFromGitHubPages('loans');
-        
-        if (filters.status) {
-            return loans.filter(loan => loan.status === filters.status);
-        }
-        if (filters.partner) {
-            return loans.filter(loan => loan.partner === filters.partner);
-        }
-        
-        return loans;
-    }
-
-    async addLoan(loanData) {
-        const loanWithMeta = {
-            ...loanData,
-            currency: 'TZS',
-            status: 'pending',
-            created: new Date().toISOString(),
-            createdBy: this._getCurrentUser() || 'system'
-        };
-
-        return await this._sendToGitHub('SAVE_DATA', 'loans', loanWithMeta);
-    }
-
-    async updateLoan(loanId, updates) {
-        return await this._sendToGitHub('SAVE_DATA', 'loans', updates, loanId, 'update');
-    }
-
-    // APPLICATION MANAGEMENT
-    async getApplications(filters = {}) {
-        const applications = await this._getFromGitHubPages('applications');
-        
-        if (filters.status) {
-            return applications.filter(app => app.status === filters.status);
-        }
-        
-        return applications;
-    }
-
-    async addApplication(applicationData) {
-        const appWithMeta = {
-            ...applicationData,
-            currency: 'TZS',
-            status: 'submitted',
-            created: new Date().toISOString(),
-            applicationId: `APP-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
-        };
-
-        return await this._sendToGitHub('SAVE_DATA', 'applications', appWithMeta);
-    }
-
-    async updateApplication(appId, updates) {
-        return await this._sendToGitHub('SAVE_DATA', 'applications', updates, appId, 'update');
-    }
-
-    // CUSTOMER MANAGEMENT
-    async getCustomers() {
-        return await this._getFromGitHubPages('customers');
-    }
-
-    async addCustomer(customerData) {
-        const customerWithMeta = {
-            ...customerData,
-            customerId: `CUST-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-            created: new Date().toISOString(),
-            status: 'active'
-        };
-
-        return await this._sendToGitHub('SAVE_DATA', 'customers', customerWithMeta);
-    }
-
-    async updateCustomer(customerId, updates) {
-        return await this._sendToGitHub('SAVE_DATA', 'customers', updates, customerId, 'update');
-    }
-
-    // USER MANAGEMENT
-    async getUsers() {
-        return await this._getFromGitHubPages('users');
-    }
-
-    async authenticate(username, password) {
-        const users = await this.getUsers();
-        const user = users.find(u => u.username === username && u.password === password);
-        
-        if (user) {
-            // Store session
-            sessionStorage.setItem('nkumbise_user', JSON.stringify({
-                id: user.id,
-                username: user.username,
-                name: user.name,
-                role: user.role,
-                email: user.email
-            }));
+            let data = this.getLocalData(type);
+            const timestamp = new Date().toISOString();
             
-            return user;
+            if (id) {
+                const index = data.findIndex(item => item.id === id);
+                if (index !== -1) {
+                    data[index] = { ...data[index], ...newData, updatedAt: timestamp };
+                } else {
+                    data.push({ id, ...newData, createdAt: timestamp });
+                }
+            } else {
+                const newId = `${type.slice(0,3).toUpperCase()}-${Date.now()}`;
+                data.push({
+                    id: newId,
+                    ...newData,
+                    createdAt: timestamp,
+                    currency: 'TZS'
+                });
+            }
+            
+            localStorage.setItem(`nkumbise_${type}`, JSON.stringify(data));
+            return data;
+        } catch (error) {
+            console.error('Local save failed:', error);
+            return [];
+        }
+    }
+
+    // Token management
+    getToken() {
+        // Check session storage first
+        const sessionToken = sessionStorage.getItem('nkumbise_gh_token');
+        if (sessionToken) return sessionToken;
+        
+        // Check localStorage
+        const localToken = localStorage.getItem('nkumbise_gh_token');
+        if (localToken) {
+            sessionStorage.setItem('nkumbise_gh_token', localToken);
+            return localToken;
         }
         
         return null;
     }
 
-    // ACTIVITY LOG
-    async getActivities(limit = 50) {
-        const activities = await this._getFromGitHubPages('activities');
-        return activities.slice(0, limit);
+    setToken(token) {
+        sessionStorage.setItem('nkumbise_gh_token', token);
+        localStorage.setItem('nkumbise_gh_token', token);
     }
 
-    async logActivity(type, message, user = null) {
-        const activity = {
-            type: type,
-            message: message,
-            user: user || this._getCurrentUser() || 'system',
-            timestamp: new Date().toISOString(),
-            id: `ACT-${Date.now()}`
-        };
-
-        const activities = await this._getFromGitHubPages('activities');
-        activities.unshift(activity);
-        
-        return await this._sendToGitHub('SAVE_DATA', 'activities', activities);
+    // Loan operations
+    async getLoans() {
+        return await this.getData('loans');
     }
 
-    // SEARCH FUNCTIONALITY
-    async search(query, dataType = null) {
-        if (dataType) {
-            const data = await this._getFromGitHubPages(dataType);
-            return this._searchInData(data, query);
-        }
-
-        // Search across all data types
-        const [loans, applications, customers] = await Promise.all([
-            this.getLoans(),
-            this.getApplications(),
-            this.getCustomers()
-        ]);
-
-        const allResults = [
-            ...loans.map(item => ({ ...item, type: 'loan' })),
-            ...applications.map(item => ({ ...item, type: 'application' })),
-            ...customers.map(item => ({ ...item, type: 'customer' }))
-        ];
-
-        return this._searchInData(allResults, query);
+    async saveLoan(loanData, id = null) {
+        return await this.saveData('loans', loanData, id);
     }
 
-    _searchInData(data, query) {
-        const searchTerm = query.toLowerCase();
-        return data.filter(item => {
-            return Object.values(item).some(value => 
-                String(value).toLowerCase().includes(searchTerm)
-            );
-        });
+    // Application operations
+    async getApplications() {
+        return await this.getData('applications');
     }
 
-    // STATISTICS
-    async getStatistics() {
-        const [loans, applications, customers] = await Promise.all([
-            this.getLoans(),
-            this.getApplications(),
-            this.getCustomers()
-        ]);
-
-        const totalLoanAmount = loans.reduce((sum, loan) => sum + (parseFloat(loan.amount) || 0), 0);
-        const activeLoans = loans.filter(loan => loan.status === 'active').length;
-        const pendingApps = applications.filter(app => app.status === 'submitted' || app.status === 'pending').length;
-        const totalInterest = loans.reduce((sum, loan) => sum + (parseFloat(loan.interest) || 0), 0);
-
-        return {
-            totalLoans: loans.length,
-            totalLoanAmount: totalLoanAmount,
-            usdEquivalent: (totalLoanAmount / 2500).toFixed(2),
-            activeLoans: activeLoans,
-            pendingApplications: pendingApps,
-            totalCustomers: customers.length,
-            totalInterest: totalInterest,
-            totalProfit: totalInterest * 0.7, // Example: 70% of interest is profit
-            lastUpdated: new Date().toISOString()
-        };
+    async saveApplication(appData, id = null) {
+        return await this.saveData('applications', appData, id);
     }
 
-    // ==================== UTILITY METHODS ====================
-
-    _getToken() {
-        // In production, this should be managed securely
-        // For now, we'll use a placeholder
-        const token = sessionStorage.getItem('nkumbise_gh_token');
-        
-        if (!token) {
-            console.warn('GitHub token not found. Some features may not work.');
-            return 'ghp_PLACEHOLDER_TOKEN'; // Will be replaced with actual token management
-        }
-        
-        return token;
+    // Customer operations
+    async getCustomers() {
+        return await this.getData('customers');
     }
 
-    _getCurrentUser() {
-        const userStr = sessionStorage.getItem('nkumbise_user');
-        return userStr ? JSON.parse(userStr) : null;
+    async saveCustomer(customerData, id = null) {
+        return await this.saveData('customers', customerData, id);
     }
 
-    // TZS/USD Conversion
-    convertTZStoUSD(tzsAmount) {
+    // User operations
+    async getUsers() {
+        return await this.getData('users');
+    }
+
+    // Currency conversion
+    tzsToUSD(tzsAmount) {
         return (parseFloat(tzsAmount) / 2500).toFixed(2);
     }
 
     formatTZS(amount) {
-        return `TZS ${parseFloat(amount).toLocaleString('en-TZ')}`;
+        return `TZS ${parseFloat(amount).toLocaleString()}`;
     }
 
     formatUSD(tzsAmount) {
-        return `$ ${this.convertTZStoUSD(tzsAmount)}`;
-    }
-
-    // Sync all local data to GitHub
-    async syncAllToGitHub() {
-        const dataTypes = ['loans', 'applications', 'customers', 'users', 'activities'];
-        
-        for (const type of dataTypes) {
-            const localData = this._getFromLocalStorage(type);
-            if (localData.length > 0) {
-                await this._sendToGitHub('SAVE_DATA', type, localData);
-            }
-        }
-        
-        return { success: true, message: 'All data synced to GitHub' };
+        return `$${this.tzsToUSD(tzsAmount)} USD`;
     }
 }
 
-// Initialize global API instance
+// Create global instance
 window.nkumbiseAPI = new NkumbiseAPI();
-
-// Auto-sync on page load
-document.addEventListener('DOMContentLoaded', async () => {
-    // Check if we need to sync from localStorage
-    const lastSync = localStorage.getItem('nkumbise_last_sync');
-    const now = Date.now();
-    
-    if (!lastSync || (now - parseInt(lastSync)) > 3600000) { // 1 hour
-        try {
-            await window.nkumbiseAPI.syncAllToGitHub();
-            localStorage.setItem('nkumbise_last_sync', now.toString());
-        } catch (error) {
-            console.log('Auto-sync skipped:', error.message);
-        }
-    }
-});
