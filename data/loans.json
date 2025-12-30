@@ -1,22 +1,22 @@
 [
   {
-    "id": "L20241230001",
+    "id": "SAMPLE001",
     "applicationId": "APP20241230001",
-    "customerName": "John Doe",
-    "phone": "+255123456789",
-    "amount": 1500,
+    "customerName": "Sample Customer",
+    "phone": "+255000000000",
+    "amount": 0,
     "interestRate": 0.3,
-    "totalInterest": 450,
-    "totalRepayment": 1950,
-    "dueDate": "2025-01-30",
-    "status": "active",
+    "totalInterest": 0,
+    "totalRepayment": 0,
+    "dueDate": "2024-12-31",
+    "status": "sample",
     "partnerId": "U002",
     "createdAt": "2024-12-30T11:00:00Z",
     "totalRepaid": 0,
-    "outstanding": 1950,
-    "profit": 450,
-    "collateralId": "C20241230001",
-    "investorShare": 315,
-    "partnerShare": 135
+    "outstanding": 0,
+    "profit": 0,
+    "currency": "TZS",
+    "exchangeRate": 2500,
+    "notes": "This is sample data. System starts with zero loans."
   }
 ]
