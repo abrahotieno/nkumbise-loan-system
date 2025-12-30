@@ -5,7 +5,8 @@
     "userId": "U001",
     "userRole": "admin",
     "action": "SYSTEM_INITIALIZED",
-    "details": "System setup completed",
-    "ipAddress": "127.0.0.1"
+    "details": "Nkumbise Investment System setup with TZS currency",
+    "ipAddress": "127.0.0.1",
+    "currency": "TZS"
   }
 ]
