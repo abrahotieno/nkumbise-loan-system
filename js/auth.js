@@ -1,4 +1,4 @@
-// Nkumbise Investment Dashboard Authentication
+// Nkumbise Investment Dashboard - TZS with USD equivalent
 // Single login: admin/admin for all roles
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -193,12 +193,12 @@ function loadDashboardData(role) {
     // ALL ZEROS - No sample data
     const stats = {
         totalLoans: 0,
-        totalAmount: 0,
+        totalAmount: 0, // TZS
         activeLoans: 0,
-        totalProfit: 0
+        totalProfit: 0  // TZS
     };
     
-    // Update stats with TZS
+    // Update stats with TZS + USD format
     updateStats(stats);
     
     // Empty tables
@@ -211,11 +211,24 @@ function loadDashboardData(role) {
     showEmptyState();
 }
 
+// Convert TZS to USD (approximate rate: 1 USD = 2500 TZS)
+function tzsToUsd(tzsAmount) {
+    const exchangeRate = 2500; // Approximate rate
+    return Math.round(tzsAmount / exchangeRate);
+}
+
+function formatCurrency(tzsAmount) {
+    if (tzsAmount === 0) return 'TZS 0';
+    
+    const usdAmount = tzsToUsd(tzsAmount);
+    return `TZS ${tzsAmount.toLocaleString()} (≈ $${usdAmount.toLocaleString()})`;
+}
+
 function updateStats(stats) {
     document.getElementById('statTotalLoans').textContent = stats.totalLoans;
-    document.getElementById('statTotalAmount').textContent = `TZS ${stats.totalAmount.toLocaleString()}`;
+    document.getElementById('statTotalAmount').textContent = formatCurrency(stats.totalAmount);
     document.getElementById('statActiveLoans').textContent = stats.activeLoans;
-    document.getElementById('statTotalProfit').textContent = `TZS ${stats.totalProfit.toLocaleString()}`;
+    document.getElementById('statTotalProfit').textContent = formatCurrency(stats.totalProfit);
 }
 
 function clearTables() {
@@ -230,10 +243,13 @@ function showEmptyState() {
     const mainContent = document.getElementById('mainContent');
     if (mainContent && mainContent.children.length === 0) {
         mainContent.innerHTML = `
-            <div style="text-align: center; padding: 3rem; color: var(--gray-color);">
-                <i class="fas fa-database" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                <h3>No Data Available</h3>
+            <div style="text-align: center; padding: 3rem; color: #6c757d;">
+                <i class="fas fa-database" style="font-size: 3rem; margin-bottom: 1rem; color: #e0e0e0;"></i>
+                <h3 style="color: #1a1a2e; margin-bottom: 1rem;">No Data Available</h3>
                 <p>System is ready. Data will appear here once you start adding loans and applications.</p>
+                <div style="margin-top: 2rem; color: #2d5be3; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i> All amounts shown in TZS with USD equivalent
+                </div>
             </div>
         `;
     }
@@ -308,11 +324,14 @@ function showView(viewName) {
         
         // Show empty state for all views
         mainContent.innerHTML = `
-            <div style="text-align: center; padding: 3rem; color: var(--gray-color);">
-                <i class="fas fa-tools" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                <h3>${viewTitles[viewName] || viewName}</h3>
+            <div style="text-align: center; padding: 3rem; color: #6c757d;">
+                <i class="fas fa-tools" style="font-size: 3rem; margin-bottom: 1rem; color: #e0e0e0;"></i>
+                <h3 style="color: #1a1a2e; margin-bottom: 1rem;">${viewTitles[viewName] || viewName}</h3>
                 <p>This feature is ready. Data will appear here once the system is in use.</p>
-                <button class="action-btn" onclick="showView('overview')" style="margin-top: 1rem;">
+                <div style="margin-top: 1.5rem; font-size: 0.9rem; color: #2d5be3;">
+                    <i class="fas fa-info-circle"></i> Currency: TZS with USD equivalent (1 USD ≈ 2,500 TZS)
+                </div>
+                <button class="action-btn" onclick="showView('overview')" style="margin-top: 1.5rem; background: #2d5be3; color: white;">
                     <i class="fas fa-arrow-left"></i> Back to Overview
                 </button>
             </div>
@@ -353,3 +372,5 @@ window.selectRole = selectRole;
 window.login = login;
 window.showView = showView;
 window.logout = logout;
+window.tzsToUsd = tzsToUsd;
+window.formatCurrency = formatCurrency;
