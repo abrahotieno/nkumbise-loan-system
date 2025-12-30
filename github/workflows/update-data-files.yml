@@ -1,0 +1,28 @@
+name: Update Data Files
+on:
+  workflow_dispatch:
+    inputs:
+      file:
+        description: 'File to update'
+        required: true
+        default: 'loans.json'
+      data:
+        description: 'JSON data'
+        required: true
+
+jobs:
+  update-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Update data file
+        run: |
+          echo "${{ github.event.inputs.data }}" > data/${{ github.event.inputs.file }}
+          
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/${{ github.event.inputs.file }}
+          git commit -m "Update ${{ github.event.inputs.file }} via workflow"
+          git push
