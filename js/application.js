@@ -1,4 +1,6 @@
-// Application Form Logic
+// Application Form Logic for Nkumbise Investment - TZS with USD equivalent
+const EXCHANGE_RATE = 2500; // 1 USD = 2500 TZS
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize application form
     initApplicationForm();
@@ -18,6 +20,23 @@ function initApplicationForm() {
         loan: {},
         collateral: {}
     };
+    
+    // Convert TZS to USD
+    function tzsToUsd(tzsAmount) {
+        return Math.round(tzsAmount / EXCHANGE_RATE);
+    }
+    
+    // Format TZS with USD equivalent
+    function formatCurrency(tzsAmount) {
+        if (tzsAmount === 0) return 'TZS 0';
+        const usdAmount = tzsToUsd(tzsAmount);
+        return `TZS ${tzsAmount.toLocaleString()} (≈ $${usdAmount.toLocaleString()})`;
+    }
+    
+    // Format TZS only
+    function formatTzs(tzsAmount) {
+        return `TZS ${tzsAmount.toLocaleString()}`;
+    }
     
     // Generate application ID
     function generateApplicationId() {
@@ -80,6 +99,7 @@ function initApplicationForm() {
             const name = document.getElementById('fullName').value.trim();
             const phone = document.getElementById('phoneNumber').value.trim();
             const location = document.getElementById('location').value.trim();
+            const businessType = document.getElementById('businessType').value;
             
             if (!name) {
                 alert('Please enter your full name');
@@ -90,14 +110,17 @@ function initApplicationForm() {
             } else if (!location) {
                 alert('Please enter your location');
                 isValid = false;
+            } else if (!businessType) {
+                alert('Please select your business type');
+                isValid = false;
             }
         } else if (step === 2) {
             const amount = document.getElementById('loanAmount').value;
             const period = document.getElementById('repaymentPeriod').value;
             const purpose = document.getElementById('loanPurpose').value;
             
-            if (!amount || amount < 500 || amount > 5000) {
-                alert('Please enter a valid loan amount between $500 and $5,000');
+            if (!amount || amount < 500000 || amount > 5000000) {
+                alert('Please enter a valid loan amount between TZS 500,000 and TZS 5,000,000');
                 isValid = false;
             } else if (!period) {
                 alert('Please select a repayment period');
@@ -117,7 +140,8 @@ function initApplicationForm() {
                 fullName: document.getElementById('fullName').value.trim(),
                 phoneNumber: document.getElementById('phoneNumber').value.trim(),
                 email: document.getElementById('email').value.trim(),
-                location: document.getElementById('location').value.trim()
+                location: document.getElementById('location').value.trim(),
+                businessType: document.getElementById('businessType').value
             };
         } else if (step === 2) {
             applicationData.loan = {
@@ -129,14 +153,15 @@ function initApplicationForm() {
             // Calculate loan details
             const dailyRate = 0.01;
             const interestRate = applicationData.loan.period * dailyRate;
-            const totalInterest = applicationData.loan.amount * interestRate;
+            const totalInterest = Math.round(applicationData.loan.amount * interestRate);
             const totalRepayment = applicationData.loan.amount + totalInterest;
+            const dailyRepayment = Math.round(totalRepayment / applicationData.loan.period);
             
             applicationData.loanDetails = {
                 interestRate: interestRate,
                 totalInterest: totalInterest,
                 totalRepayment: totalRepayment,
-                dailyRepayment: totalRepayment / applicationData.loan.period
+                dailyRepayment: dailyRepayment
             };
             
             // Save collateral if provided
@@ -153,16 +178,32 @@ function initApplicationForm() {
     }
     
     function updateReviewSection() {
-        // Update review fields
+        // Generate and display application ID
         const appId = generateApplicationId();
         document.getElementById('reviewAppId').textContent = `#${appId}`;
+        
+        // Update personal info
         document.getElementById('reviewName').textContent = applicationData.personal.fullName;
         document.getElementById('reviewPhone').textContent = applicationData.personal.phoneNumber;
         document.getElementById('reviewLocation').textContent = applicationData.personal.location;
-        document.getElementById('reviewAmount').textContent = `$${applicationData.loan.amount.toLocaleString()}`;
+        document.getElementById('reviewBusiness').textContent = applicationData.personal.businessType;
+        
+        // Update loan info with TZS formatting
+        const amount = applicationData.loan.amount;
+        const totalRepayment = applicationData.loanDetails.totalRepayment;
+        const dailyRepayment = applicationData.loanDetails.dailyRepayment;
+        
+        document.getElementById('reviewAmount').textContent = formatTzs(amount);
+        document.getElementById('reviewAmountUsd').textContent = `≈ $${tzsToUsd(amount).toLocaleString()} USD`;
+        
         document.getElementById('reviewPeriod').textContent = `${applicationData.loan.period} Days`;
-        document.getElementById('reviewTotal').textContent = `$${applicationData.loanDetails.totalRepayment.toLocaleString()}`;
         document.getElementById('reviewPurpose').textContent = applicationData.loan.purpose;
+        
+        document.getElementById('reviewTotal').textContent = formatTzs(totalRepayment);
+        document.getElementById('reviewTotalUsd').textContent = `≈ $${tzsToUsd(totalRepayment).toLocaleString()} USD`;
+        
+        document.getElementById('reviewDaily').textContent = formatTzs(dailyRepayment);
+        document.getElementById('reviewDailyUsd').textContent = `≈ $${tzsToUsd(dailyRepayment).toLocaleString()} USD/day`;
     }
     
     window.submitApplication = async function() {
@@ -178,7 +219,9 @@ function initApplicationForm() {
             ...applicationData.collateral,
             status: 'pending',
             appliedAt: now.toISOString(),
-            notes: ''
+            notes: '',
+            currency: 'TZS',
+            exchangeRate: EXCHANGE_RATE
         };
         
         // Show loading state
@@ -188,9 +231,6 @@ function initApplicationForm() {
         submitBtn.disabled = true;
         
         try {
-            // In production, this would save to your GitHub data file
-            // For now, we'll simulate success and show confirmation
-            
             // Simulate API call delay
             await new Promise(resolve => setTimeout(resolve, 1500));
             
@@ -211,8 +251,10 @@ function initApplicationForm() {
                     minute: '2-digit' 
                 });
             
-            // In production, uncomment this to save to GitHub:
-            // await saveToGitHub('applications.json', finalApplication);
+            // Store application in localStorage for tracking
+            const applications = JSON.parse(localStorage.getItem('nkumbise_applications') || '[]');
+            applications.push(finalApplication);
+            localStorage.setItem('nkumbise_applications', JSON.stringify(applications));
             
         } catch (error) {
             alert('Error submitting application. Please try again.');
@@ -222,47 +264,76 @@ function initApplicationForm() {
             submitBtn.disabled = false;
         }
     };
-    
-    // Save to GitHub function (for production)
-    async function saveToGitHub(filename, data) {
-        // This would use GitHub API to update your data file
-        // You would need to implement OAuth and API calls
-        console.log('Would save to GitHub:', filename, data);
-    }
 }
 
 function initApplicationCalculator() {
     const amountSlider = document.getElementById('amountSlider');
     const amountInput = document.getElementById('loanAmount');
     const periodSelect = document.getElementById('repaymentPeriod');
+    const collateralValue = document.getElementById('collateralValue');
     
     // Summary elements
     const summaryAmount = document.getElementById('summaryAmount');
+    const summaryAmountUsd = document.getElementById('summaryAmountUsd');
     const summaryInterest = document.getElementById('summaryInterest');
+    const summaryInterestUsd = document.getElementById('summaryInterestUsd');
     const summaryTotal = document.getElementById('summaryTotal');
+    const summaryTotalUsd = document.getElementById('summaryTotalUsd');
+    const summaryDaily = document.getElementById('summaryDaily');
+    const summaryDailyUsd = document.getElementById('summaryDailyUsd');
+    const amountUsd = document.getElementById('amountUsd');
+    const collateralUsd = document.getElementById('collateralUsd');
+    
+    // Convert TZS to USD
+    function tzsToUsd(tzsAmount) {
+        return Math.round(tzsAmount / EXCHANGE_RATE);
+    }
     
     // Update calculator
     function updateCalculator() {
-        const amount = parseInt(amountInput.value);
-        const period = parseInt(periodSelect.value);
+        const amount = parseInt(amountInput.value) || 0;
+        const period = parseInt(periodSelect.value) || 30;
         
         // Validate amount
-        if (amount < 500) amountInput.value = 500;
-        if (amount > 5000) amountInput.value = 5000;
+        if (amount < 500000) amountInput.value = 500000;
+        if (amount > 5000000) amountInput.value = 5000000;
         
         // Calculate
         const dailyRate = 0.01;
         const interestRate = period * dailyRate;
-        const totalInterest = amount * interestRate;
+        const totalInterest = Math.round(amount * interestRate);
         const totalRepayment = amount + totalInterest;
+        const dailyRepayment = Math.round(totalRepayment / period);
         
         // Update slider sync
         if (amountSlider) amountSlider.value = amount;
         
-        // Update summary
-        if (summaryAmount) summaryAmount.textContent = `$${amount.toLocaleString()}`;
-        if (summaryInterest) summaryInterest.textContent = `$${totalInterest.toLocaleString()}`;
-        if (summaryTotal) summaryTotal.textContent = `$${totalRepayment.toLocaleString()}`;
+        // Update summary with TZS and USD
+        if (summaryAmount) summaryAmount.textContent = `TZS ${amount.toLocaleString()}`;
+        if (summaryAmountUsd) summaryAmountUsd.textContent = `≈ $${tzsToUsd(amount).toLocaleString()} USD`;
+        
+        if (summaryInterest) summaryInterest.textContent = `TZS ${totalInterest.toLocaleString()}`;
+        if (summaryInterestUsd) summaryInterestUsd.textContent = `≈ $${tzsToUsd(totalInterest).toLocaleString()} USD`;
+        
+        if (summaryTotal) summaryTotal.textContent = `TZS ${totalRepayment.toLocaleString()}`;
+        if (summaryTotalUsd) summaryTotalUsd.textContent = `≈ $${tzsToUsd(totalRepayment).toLocaleString()} USD`;
+        
+        if (summaryDaily) summaryDaily.textContent = `TZS ${dailyRepayment.toLocaleString()}/day`;
+        if (summaryDailyUsd) summaryDailyUsd.textContent = `≈ $${tzsToUsd(dailyRepayment).toLocaleString()} USD/day`;
+        
+        if (amountUsd) amountUsd.textContent = `≈ $${tzsToUsd(amount).toLocaleString()} USD`;
+    }
+    
+    // Update collateral USD conversion
+    function updateCollateralUsd() {
+        const value = parseInt(collateralValue.value) || 0;
+        if (collateralUsd) {
+            if (value > 0) {
+                collateralUsd.textContent = `≈ $${tzsToUsd(value).toLocaleString()} USD`;
+            } else {
+                collateralUsd.textContent = '';
+            }
+        }
     }
     
     // Event listeners
@@ -279,6 +350,22 @@ function initApplicationCalculator() {
         periodSelect.addEventListener('change', updateCalculator);
     }
     
+    if (collateralValue) {
+        collateralValue.addEventListener('input', updateCollateralUsd);
+    }
+    
     // Initial calculation
     updateCalculator();
+    updateCollateralUsd();
+}
+
+// Make functions available globally
+if (typeof window !== 'undefined') {
+    window.tzsToUsd = function(tzs) {
+        return Math.round(tzs / 2500);
+    };
+    
+    window.formatTzs = function(tzs) {
+        return `TZS ${tzs.toLocaleString()}`;
+    };
 }
