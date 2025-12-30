@@ -640,6 +640,82 @@
             animation: fadeIn 0.5s ease;
         }
         
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #2d5be3;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* View Styles */
+        #addLoanView, #applicationsView, #myLoansView, #customersView,
+        #addCustomerView, #usersView, #reportsView, #settingsView, #profileView {
+            display: none;
+        }
+        
+        .btn-action {
+            padding: 0.4rem 0.8rem;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-action:hover {
+            background: #2d5be3;
+            color: white;
+            border-color: #2d5be3;
+        }
+        
+        .text-muted {
+            color: #6c757d !important;
+        }
+        
+        .text-primary {
+            color: #2d5be3 !important;
+        }
+        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -865,13 +941,6 @@
                         </div>
                         <span class="nav-text">System Settings</span>
                     </a>
-                    
-                    <a href="#" class="nav-item" onclick="showView('backup')">
-                        <div class="nav-icon">
-                            <i class="fas fa-database"></i>
-                        </div>
-                        <span class="nav-text">Data Backup</span>
-                    </a>
                 </div>
                 
                 <!-- Partner Menu -->
@@ -890,13 +959,6 @@
                         <span class="nav-text">My Loans</span>
                     </a>
                     
-                    <a href="#" class="nav-item" onclick="showView('collections')">
-                        <div class="nav-icon">
-                            <i class="fas fa-money-check-alt"></i>
-                        </div>
-                        <span class="nav-text">Collections</span>
-                    </a>
-                    
                     <a href="#" class="nav-item" onclick="showView('customers')">
                         <div class="nav-icon">
                             <i class="fas fa-user-friends"></i>
@@ -907,32 +969,18 @@
                 
                 <!-- Accountant Menu -->
                 <div class="accountant-view">
-                    <a href="#" class="nav-item" onclick="showView('financialReports')">
+                    <a href="#" class="nav-item" onclick="showView('reports')">
                         <div class="nav-icon">
                             <i class="fas fa-chart-pie"></i>
                         </div>
                         <span class="nav-text">Financial Reports</span>
                     </a>
                     
-                    <a href="#" class="nav-item" onclick="showView('profitAnalysis')">
+                    <a href="#" class="nav-item" onclick="showView('applications')">
                         <div class="nav-icon">
-                            <i class="fas fa-calculator"></i>
+                            <i class="fas fa-file-alt"></i>
                         </div>
-                        <span class="nav-text">Profit Analysis</span>
-                    </a>
-                    
-                    <a href="#" class="nav-item" onclick="showView('export')">
-                        <div class="nav-icon">
-                            <i class="fas fa-file-export"></i>
-                        </div>
-                        <span class="nav-text">Export Data</span>
-                    </a>
-                    
-                    <a href="#" class="nav-item" onclick="showView('audit')">
-                        <div class="nav-icon">
-                            <i class="fas fa-clipboard-check"></i>
-                        </div>
-                        <span class="nav-text">Audit Trail</span>
+                        <span class="nav-text">Applications Review</span>
                     </a>
                 </div>
                 
@@ -945,25 +993,11 @@
                         <span class="nav-text">Applications</span>
                     </a>
                     
-                    <a href="#" class="nav-item" onclick="showView('support')">
+                    <a href="#" class="nav-item" onclick="showView('customers')">
                         <div class="nav-icon">
                             <i class="fas fa-headset"></i>
                         </div>
                         <span class="nav-text">Customer Support</span>
-                    </a>
-                    
-                    <a href="#" class="nav-item" onclick="showView('followups')">
-                        <div class="nav-icon">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <span class="nav-text">Follow-ups</span>
-                    </a>
-                    
-                    <a href="#" class="nav-item" onclick="showView('communications')">
-                        <div class="nav-icon">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <span class="nav-text">Communications</span>
                     </a>
                 </div>
                 
@@ -1107,7 +1141,7 @@
                 <div class="content-card">
                     <div class="card-header">
                         <div class="card-title">Recent Activities</div>
-                        <a href="#" class="view-all" onclick="showView('systemLogs')">View All</a>
+                        <a href="#" class="view-all" onclick="showView('overview')">View All</a>
                     </div>
                     
                     <ul class="activity-list" id="activityList">
@@ -1144,6 +1178,1030 @@
         </div>
     </div>
 
-    <script src="js/auth.js"></script>
+    <!-- ==================== VIEW TEMPLATES ==================== -->
+
+    <!-- Add Loan View (Partner) -->
+    <div class="partner-view view-active" id="addLoanView" style="display: none;">
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">Add New Loan Application</div>
+                <a href="#" class="view-all" onclick="showView('overview')">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+            
+            <form id="addLoanForm">
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                        <i class="fas fa-user-circle"></i> Customer Information
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" name="customerName" required 
+                                   placeholder="Enter full name">
+                        </div>
+                        <div>
+                            <label class="form-label">Phone Number *</label>
+                            <input type="tel" class="form-control" name="phone" required 
+                                   placeholder="e.g., 0754123456">
+                        </div>
+                        <div>
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email" 
+                                   placeholder="customer@example.com">
+                        </div>
+                        <div>
+                            <label class="form-label">National ID *</label>
+                            <input type="text" class="form-control" name="idNumber" required 
+                                   placeholder="Enter national ID number">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label class="form-label">Physical Address *</label>
+                            <input type="text" class="form-control" name="address" required 
+                                   placeholder="Enter complete address">
+                        </div>
+                        <div>
+                            <label class="form-label">Occupation/Business</label>
+                            <input type="text" class="form-control" name="occupation" 
+                                   placeholder="What do they do?">
+                        </div>
+                        <div>
+                            <label class="form-label">Monthly Income (TZS)</label>
+                            <input type="number" class="form-control" name="monthlyIncome" 
+                                   placeholder="Estimated monthly income" oninput="updateIncomeUSD(this.value)">
+                            <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                                USD: $<span id="incomeUSD">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                        <i class="fas fa-file-invoice-dollar"></i> Loan Details
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label class="form-label">Loan Amount (TZS) *</label>
+                            <input type="number" class="form-control" name="amount" required 
+                                   min="100000" step="10000" placeholder="Minimum: 100,000 TZS"
+                                   oninput="updateLoanUSD(this.value)">
+                            <div id="loanUSD" style="font-size: 0.85rem; color: #2d5be3; margin-top: 5px; font-weight: 500;">
+                                USD equivalent: $0
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Loan Purpose *</label>
+                            <select class="form-control" name="purpose" required>
+                                <option value="">Select purpose</option>
+                                <option value="Business Expansion">Business Expansion</option>
+                                <option value="Agriculture">Agriculture/Farming</option>
+                                <option value="Education">Education Fees</option>
+                                <option value="Medical">Medical Emergency</option>
+                                <option value="Construction">House Construction</option>
+                                <option value="Vehicle">Vehicle Purchase</option>
+                                <option value="Inventory">Business Inventory</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Loan Term (Months) *</label>
+                            <select class="form-control" name="term" required onchange="calculateMonthlyPayment()">
+                                <option value="">Select term</option>
+                                <option value="3">3 Months</option>
+                                <option value="6">6 Months</option>
+                                <option value="12">12 Months</option>
+                                <option value="18">18 Months</option>
+                                <option value="24">24 Months</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Interest Rate (%) *</label>
+                            <input type="number" class="form-control" name="interestRate" required 
+                                   value="12" min="1" max="30" step="0.5" onchange="calculateMonthlyPayment()">
+                            <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                                Annual interest rate
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 1.5rem;">
+                        <h4 style="color: #1a1a2e; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-calculator"></i> Payment Calculation
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <div style="font-size: 0.9rem; color: #6c757d;">Monthly Payment</div>
+                                <div id="monthlyPaymentCalc" style="font-size: 1.4rem; font-weight: 700; color: #2d5be3;">
+                                    TZS 0
+                                </div>
+                                <div id="monthlyPaymentUSD" style="font-size: 0.85rem; color: #6c757d;">
+                                    $0 USD
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9rem; color: #6c757d;">Total Payment</div>
+                                <div id="totalPaymentCalc" style="font-size: 1.4rem; font-weight: 700; color: #00d4aa;">
+                                    TZS 0
+                                </div>
+                                <div id="totalPaymentUSD" style="font-size: 0.85rem; color: #6c757d;">
+                                    $0 USD
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.9rem; color: #6c757d;">Total Interest</div>
+                                <div id="totalInterestCalc" style="font-size: 1.4rem; font-weight: 700; color: #ff6b6b;">
+                                    TZS 0
+                                </div>
+                                <div id="totalInterestUSD" style="font-size: 0.85rem; color: #6c757d;">
+                                    $0 USD
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                        <i class="fas fa-shield-alt"></i> Collateral Information
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label class="form-label">Collateral Type</label>
+                            <select class="form-control" name="collateralType">
+                                <option value="">Select type</option>
+                                <option value="Land Title">Land Title</option>
+                                <option value="Vehicle Logbook">Vehicle Logbook</option>
+                                <option value="Building">Building/House</option>
+                                <option value="Equipment">Machinery/Equipment</option>
+                                <option value="Guarantor">Personal Guarantor</option>
+                                <option value="Savings">Fixed Deposit/Savings</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Collateral Value (TZS)</label>
+                            <input type="number" class="form-control" name="collateralValue" 
+                                   placeholder="Estimated value" oninput="updateCollateralUSD(this.value)">
+                            <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                                USD: $<span id="collateralUSD">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Collateral Description</label>
+                        <textarea class="form-control" name="collateralDesc" rows="3" 
+                                  placeholder="Describe the collateral in detail (location, condition, identification numbers, etc.)"></textarea>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 2px solid #f0f0f0; padding-top: 1.5rem;">
+                    <button type="button" class="action-btn" onclick="showView('overview')" 
+                            style="background: #6c757d; border-color: #6c757d; color: white; padding: 0.8rem 1.5rem;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="button" class="action-btn" onclick="submitLoanForm()" 
+                            style="background: linear-gradient(135deg, #2d5be3, #1a49c4); color: white; border: none; padding: 0.8rem 1.5rem;">
+                        <i class="fas fa-check-circle"></i> Submit Loan Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Applications View (Support/Partner/Accountant) -->
+    <div class="support-view view-active" id="applicationsView" style="display: none;">
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">Loan Applications</div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <select id="appStatusFilter" class="form-control" style="width: auto;" onchange="filterApplications()">
+                        <option value="">All Status</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="pending">Pending Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                    <a href="#" class="view-all" onclick="showView('overview')">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>App ID</th>
+                            <th>Applicant</th>
+                            <th>Amount (TZS)</th>
+                            <th>Purpose</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationsTable">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 3rem; color: #6c757d;">
+                                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block; color: #e0e0e0;"></i>
+                                No applications found
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="color: #6c757d; font-size: 0.9rem;">
+                    Showing <span id="appCount">0</span> applications
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="action-btn" onclick="exportApplications()" style="padding: 0.6rem 1.2rem;">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="action-btn" onclick="refreshApplications()" style="padding: 0.6rem 1.2rem;">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Loans View (Partner) -->
+    <div class="partner-view view-active" id="myLoansView" style="display: none;">
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">My Loan Portfolio</div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <select id="loanStatusFilter" class="form-control" style="width: auto;" onchange="filterMyLoans()">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                        <option value="defaulted">Defaulted</option>
+                    </select>
+                    <a href="#" class="view-all" onclick="showView('addLoan')">
+                        <i class="fas fa-plus"></i> New Loan
+                    </a>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Loan ID</th>
+                            <th>Customer</th>
+                            <th>Amount (TZS)</th>
+                            <th>Disbursed</th>
+                            <th>Due Date</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myLoansTable">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 3rem; color: #6c757d;">
+                                <i class="fas fa-file-invoice-dollar" style="font-size: 2rem; margin-bottom: 1rem; display: block; color: #e0e0e0;"></i>
+                                No loans found. Add your first loan to get started.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border: 1px solid #e0e0e0;">
+                    <div style="font-size: 0.9rem; color: #6c757d;">Total Portfolio</div>
+                    <div id="totalPortfolio" style="font-size: 1.8rem; font-weight: 700; color: #2d5be3;">
+                        TZS 0
+                    </div>
+                    <div id="totalPortfolioUSD" style="font-size: 0.85rem; color: #6c757d;">
+                        $0 USD
+                    </div>
+                </div>
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border: 1px solid #e0e0e0;">
+                    <div style="font-size: 0.9rem; color: #6c757d;">Active Loans</div>
+                    <div id="activeLoansCount" style="font-size: 1.8rem; font-weight: 700; color: #00d4aa;">
+                        0
+                    </div>
+                    <div style="font-size: 0.85rem; color: #6c757d;">
+                        Loans in progress
+                    </div>
+                </div>
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border: 1px solid #e0e0e0;">
+                    <div style="font-size: 0.9rem; color: #6c757d;">Expected Interest</div>
+                    <div id="expectedInterest" style="font-size: 1.8rem; font-weight: 700; color: #ff6b6b;">
+                        TZS 0
+                    </div>
+                    <div id="expectedInterestUSD" style="font-size: 0.85rem; color: #6c757d;">
+                        $0 USD
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customers View (All Roles) -->
+    <div class="admin-view view-active" id="customersView" style="display: none;">
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">Customer Management</div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <input type="text" id="customerSearch" class="form-control" placeholder="Search customers..." 
+                           style="width: 250px;" oninput="searchCustomers()">
+                    <button class="action-btn" onclick="showView('addCustomer')" style="padding: 0.6rem 1.2rem;">
+                        <i class="fas fa-user-plus"></i> Add Customer
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Location</th>
+                            <th>Loans</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTable">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 3rem; color: #6c757d;">
+                                <i class="fas fa-user-friends" style="font-size: 2rem; margin-bottom: 1rem; display: block; color: #e0e0e0;"></i>
+                                No customers found
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="color: #6c757d; font-size: 0.9rem;">
+                    <span id="customerCount">0</span> customers found
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="action-btn" onclick="exportCustomers()" style="padding: 0.6rem 1.2rem;">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="action-btn" onclick="refreshCustomers()" style="padding: 0.6rem 1.2rem;">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Customer View -->
+    <div class="partner-view view-active" id="addCustomerView" style="display: none;">
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">Add New Customer</div>
+                <a href="#" class="view-all" onclick="showView('customers')">
+                    <i class="fas fa-arrow-left"></i> Back to Customers
+                </a>
+            </div>
+            
+            <form id="addCustomerForm">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div>
+                        <h4 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                            <i class="fas fa-user"></i> Personal Information
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div>
+                                <label class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" name="fullName" required>
+                            </div>
+                            <div>
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" name="dob">
+                            </div>
+                            <div>
+                                <label class="form-label">Gender</label>
+                                <select class="form-control" name="gender">
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Marital Status</label>
+                                <select class="form-control" name="maritalStatus">
+                                    <option value="">Select</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Widowed">Widowed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                            <i class="fas fa-address-card"></i> Contact Information
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div>
+                                <label class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" name="phone" required>
+                            </div>
+                            <div>
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-control" name="email">
+                            </div>
+                            <div>
+                                <label class="form-label">National ID *</label>
+                                <input type="text" class="form-control" name="idNumber" required>
+                            </div>
+                            <div>
+                                <label class="form-label">Physical Address *</label>
+                                <textarea class="form-control" name="address" rows="2" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                            <i class="fas fa-briefcase"></i> Employment Information
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div>
+                                <label class="form-label">Occupation</label>
+                                <input type="text" class="form-control" name="occupation">
+                            </div>
+                            <div>
+                                <label class="form-label">Employer/Business</label>
+                                <input type="text" class="form-control" name="employer">
+                            </div>
+                            <div>
+                                <label class="form-label">Monthly Income (TZS)</label>
+                                <input type="number" class="form-control" name="monthlyIncome" oninput="updateCustomerIncomeUSD(this.value)">
+                                <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                                    USD: $<span id="customerIncomeUSD">0</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label">Income Source</label>
+                                <select class="form-control" name="incomeSource">
+                                    <option value="">Select</option>
+                                    <option value="Employment">Employment</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Agriculture">Agriculture</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h4 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                        <i class="fas fa-file-alt"></i> Additional Information
+                    </h4>
+                    <div>
+                        <label class="form-label">Notes/Remarks</label>
+                        <textarea class="form-control" name="notes" rows="3" 
+                                  placeholder="Any additional information about this customer..."></textarea>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 2px solid #f0f0f0; padding-top: 1.5rem;">
+                    <button type="button" class="action-btn" onclick="showView('customers')" 
+                            style="background: #6c757d; border-color: #6c757d; color: white; padding: 0.8rem 1.5rem;">
+                        Cancel
+                    </button>
+                    <button type="button" class="action-btn" onclick="submitCustomerForm()" 
+                            style="background: linear-gradient(135deg, #2d5be3, #1a49c4); color: white; border: none; padding: 0.8rem 1.5rem;">
+                        <i class="fas fa-save"></i> Save Customer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Management View (Admin) -->
+    <div class="admin-view view-active" id="usersView" style="display: none;">
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">User Management</div>
+                <button class="action-btn" onclick="showView('addUser')" style="padding: 0.6rem 1.2rem;">
+                    <i class="fas fa-user-plus"></i> Add User
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 3rem; color: #6c757d;">
+                                <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 1rem; display: block; color: #e0e0e0;"></i>
+                                No users found
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports View (Admin/Accountant) -->
+    <div class="admin-view view-active" id="reportsView" style="display: none;">
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">System Reports</div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <select id="reportType" class="form-control" style="width: auto;">
+                        <option value="loans">Loan Portfolio</option>
+                        <option value="applications">Applications</option>
+                        <option value="payments">Payment Collection</option>
+                        <option value="profit">Profit Analysis</option>
+                    </select>
+                    <select id="reportPeriod" class="form-control" style="width: auto;">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month" selected>This Month</option>
+                        <option value="quarter">This Quarter</option>
+                        <option value="year">This Year</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                    <button class="action-btn" onclick="generateReport()" style="padding: 0.6rem 1.2rem;">
+                        <i class="fas fa-chart-bar"></i> Generate
+                    </button>
+                </div>
+            </div>
+            
+            <div id="reportContent" style="min-height: 400px; display: flex; align-items: center; justify-content: center; color: #6c757d;">
+                <div style="text-align: center;">
+                    <i class="fas fa-chart-pie" style="font-size: 4rem; margin-bottom: 1rem; color: #e0e0e0;"></i>
+                    <div>Select report type and period, then click Generate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings View (Admin) -->
+    <div class="admin-view view-active" id="settingsView" style="display: none;">
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">System Settings</div>
+                <a href="#" class="view-all" onclick="showView('overview')">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div>
+                    <h4 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                        <i class="fas fa-cog"></i> General Settings
+                    </h4>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div>
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="companyName" value="Nkumbise Investment">
+                        </div>
+                        <div>
+                            <label class="form-label">Currency</label>
+                            <input type="text" class="form-control" value="TZS (Tanzanian Shilling)" readonly>
+                        </div>
+                        <div>
+                            <label class="form-label">Exchange Rate (1 USD = TZS)</label>
+                            <input type="number" class="form-control" id="exchangeRate" value="2500">
+                        </div>
+                        <div>
+                            <label class="form-label">Default Interest Rate (%)</label>
+                            <input type="number" class="form-control" id="defaultInterestRate" value="12" step="0.5">
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                        <i class="fas fa-shield-alt"></i> Security Settings
+                    </h4>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div>
+                            <label class="form-label">Session Timeout (minutes)</label>
+                            <input type="number" class="form-control" id="sessionTimeout" value="30" min="5">
+                        </div>
+                        <div>
+                            <label class="form-label">Max Login Attempts</label>
+                            <input type="number" class="form-control" id="maxLoginAttempts" value="5" min="1">
+                        </div>
+                        <div>
+                            <label class="form-label">GitHub API Token</label>
+                            <input type="password" class="form-control" id="githubToken" placeholder="Enter token for GitHub sync">
+                            <div style="font-size: 0.85rem; color: #6c757d; margin-top: 5px;">
+                                Required for cloud synchronization
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                        <i class="fas fa-bell"></i> Notification Settings
+                    </h4>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Email Notifications</span>
+                            <label class="switch">
+                                <input type="checkbox" id="emailNotifications" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>SMS Notifications</span>
+                            <label class="switch">
+                                <input type="checkbox" id="smsNotifications">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Loan Due Alerts</span>
+                            <label class="switch">
+                                <input type="checkbox" id="loanDueAlerts" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>New Application Alerts</span>
+                            <label class="switch">
+                                <input type="checkbox" id="newAppAlerts" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; border-top: 2px solid #f0f0f0; padding-top: 1.5rem;">
+                <button class="action-btn" onclick="showView('overview')" 
+                        style="background: #6c757d; border-color: #6c757d; color: white; padding: 0.8rem 1.5rem;">
+                    Cancel
+                </button>
+                <button class="action-btn" onclick="saveSettings()" 
+                        style="background: linear-gradient(135deg, #2d5be3, #1a49c4); color: white; border: none; padding: 0.8rem 1.5rem;">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile View (All Users) -->
+    <div class="admin-view view-active" id="profileView" style="display: none;">
+        <div class="content-card">
+            <div class="card-header">
+                <div class="card-title">My Profile</div>
+                <a href="#" class="view-all" onclick="showView('overview')">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
+                <div style="text-align: center;">
+                    <div style="width: 150px; height: 150px; background: linear-gradient(135deg, #2d5be3, #1a49c4); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 3rem; font-weight: bold;" id="profileAvatar">
+                        A
+                    </div>
+                    <h3 id="profileName">Administrator</h3>
+                    <div id="profileRole" style="color: #6c757d; margin-bottom: 1rem;">System Admin</div>
+                    <button class="action-btn" style="width: 100%;">
+                        <i class="fas fa-camera"></i> Change Photo
+                    </button>
+                </div>
+                
+                <div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div>
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="profileFullName" value="Administrator">
+                        </div>
+                        <div>
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="profileEmail" value="admin@nkumbise.co.tz">
+                        </div>
+                        <div>
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="profilePhone" value="+255 712 345 678">
+                        </div>
+                        <div>
+                            <label class="form-label">Role</label>
+                            <input type="text" class="form-control" id="profileRoleInput" value="Administrator" readonly>
+                        </div>
+                        <div>
+                            <label class="form-label">Department</label>
+                            <input type="text" class="form-control" id="profileDepartment" value="Management">
+                        </div>
+                        <div>
+                            <label class="form-label">Joined Date</label>
+                            <input type="text" class="form-control" id="profileJoinDate" value="2024-01-01" readonly>
+                        </div>
+                    </div>
+                    
+                    <h4 style="color: #2d5be3; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0;">
+                        Change Password
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div>
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="currentPassword">
+                        </div>
+                        <div>
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPassword">
+                        </div>
+                        <div>
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmPassword">
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 2px solid #f0f0f0; padding-top: 1.5rem;">
+                        <button class="action-btn" onclick="showView('overview')" 
+                                style="background: #6c757d; border-color: #6c757d; color: white; padding: 0.8rem 1.5rem;">
+                            Cancel
+                        </button>
+                        <button class="action-btn" onclick="updateProfile()" 
+                                style="background: linear-gradient(135deg, #2d5be3, #1a49c4); color: white; border: none; padding: 0.8rem 1.5rem;">
+                            <i class="fas fa-save"></i> Update Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="js/github-api.js"></script>
+    <script src="js/dashboard.js"></script>
+    
+    <script>
+    // Utility Functions
+    function updateLoanUSD(tzsAmount) {
+        if (tzsAmount) {
+            const usdAmount = (parseFloat(tzsAmount) / 2500).toFixed(2);
+            document.getElementById('loanUSD').textContent = `USD equivalent: $${usdAmount}`;
+            calculateMonthlyPayment();
+        }
+    }
+    
+    function updateIncomeUSD(tzsAmount) {
+        if (tzsAmount) {
+            const usdAmount = (parseFloat(tzsAmount) / 2500).toFixed(2);
+            document.getElementById('incomeUSD').textContent = usdAmount;
+        }
+    }
+    
+    function updateCollateralUSD(tzsAmount) {
+        if (tzsAmount) {
+            const usdAmount = (parseFloat(tzsAmount) / 2500).toFixed(2);
+            document.getElementById('collateralUSD').textContent = usdAmount;
+        }
+    }
+    
+    function updateCustomerIncomeUSD(tzsAmount) {
+        if (tzsAmount) {
+            const usdAmount = (parseFloat(tzsAmount) / 2500).toFixed(2);
+            document.getElementById('customerIncomeUSD').textContent = usdAmount;
+        }
+    }
+    
+    function calculateMonthlyPayment() {
+        const amount = parseFloat(document.querySelector('input[name="amount"]')?.value) || 0;
+        const term = parseInt(document.querySelector('select[name="term"]')?.value) || 0;
+        const rate = parseFloat(document.querySelector('input[name="interestRate"]')?.value) || 0;
+        
+        if (amount > 0 && term > 0 && rate > 0) {
+            const monthlyRate = rate / 100 / 12;
+            const monthlyPayment = (amount * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
+                                  (Math.pow(1 + monthlyRate, term) - 1);
+            const totalPayment = monthlyPayment * term;
+            const totalInterest = totalPayment - amount;
+            
+            // Update display
+            const format = (num) => num.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            
+            document.getElementById('monthlyPaymentCalc').textContent = `TZS ${format(monthlyPayment)}`;
+            document.getElementById('monthlyPaymentUSD').textContent = `$${(monthlyPayment / 2500).toFixed(2)} USD`;
+            
+            document.getElementById('totalPaymentCalc').textContent = `TZS ${format(totalPayment)}`;
+            document.getElementById('totalPaymentUSD').textContent = `$${(totalPayment / 2500).toFixed(2)} USD`;
+            
+            document.getElementById('totalInterestCalc').textContent = `TZS ${format(totalInterest)}`;
+            document.getElementById('totalInterestUSD').textContent = `$${(totalInterest / 2500).toFixed(2)} USD`;
+        }
+    }
+    
+    async function submitLoanForm() {
+        if (!window.dashboard) {
+            alert('Dashboard not initialized');
+            return;
+        }
+        
+        const form = document.getElementById('addLoanForm');
+        const formData = new FormData(form);
+        const loanData = {};
+        
+        for (let [key, value] of formData.entries()) {
+            loanData[key] = value;
+        }
+        
+        // Add TZS currency marker
+        loanData.currency = 'TZS';
+        loanData.exchangeRate = 2500;
+        
+        const success = await window.dashboard.addNewLoan(loanData);
+        if (success) {
+            form.reset();
+            calculateMonthlyPayment();
+        }
+    }
+    
+    async function submitCustomerForm() {
+        if (!window.dashboard) {
+            alert('Dashboard not initialized');
+            return;
+        }
+        
+        const form = document.getElementById('addCustomerForm');
+        const formData = new FormData(form);
+        const customerData = {};
+        
+        for (let [key, value] of formData.entries()) {
+            customerData[key] = value;
+        }
+        
+        // Generate customer ID
+        customerData.customerId = 'CUST-' + Date.now().toString().slice(-8);
+        customerData.createdBy = window.dashboard.currentUser?.username || 'system';
+        customerData.createdDate = new Date().toISOString();
+        
+        const success = await window.dashboard.addNewCustomer(customerData);
+        if (success) {
+            form.reset();
+            showView('customers');
+        }
+    }
+    
+    function filterApplications() {
+        const status = document.getElementById('appStatusFilter').value;
+        // Filter logic would be implemented in dashboard.js
+        console.log('Filter applications by:', status);
+    }
+    
+    function filterMyLoans() {
+        const status = document.getElementById('loanStatusFilter').value;
+        console.log('Filter loans by:', status);
+    }
+    
+    function searchCustomers() {
+        const query = document.getElementById('customerSearch').value;
+        console.log('Search customers:', query);
+    }
+    
+    function exportApplications() {
+        console.log('Export applications');
+        alert('Export functionality will be implemented soon');
+    }
+    
+    function exportCustomers() {
+        console.log('Export customers');
+        alert('Export functionality will be implemented soon');
+    }
+    
+    function refreshApplications() {
+        if (window.dashboard) {
+            window.dashboard.refreshData();
+        }
+    }
+    
+    function refreshCustomers() {
+        if (window.dashboard) {
+            window.dashboard.refreshData();
+        }
+    }
+    
+    function generateReport() {
+        const type = document.getElementById('reportType').value;
+        const period = document.getElementById('reportPeriod').value;
+        
+        const reportContent = document.getElementById('reportContent');
+        reportContent.innerHTML = `
+            <div style="width: 100%;">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h3 style="color: #2d5be3;">${type.charAt(0).toUpperCase() + type.slice(1)} Report</h3>
+                    <div style="color: #6c757d;">Period: ${period}</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.9rem; color: #6c757d;">Total</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #2d5be3;">0</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.9rem; color: #6c757d;">Amount</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #00d4aa;">TZS 0</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.9rem; color: #6c757d;">Growth</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #ff6b6b;">0%</div>
+                    </div>
+                </div>
+                <div style="background: #f8f9fa; height: 200px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #6c757d;">
+                    Report data will appear here once system has data
+                </div>
+            </div>
+        `;
+    }
+    
+    function saveSettings() {
+        const settings = {
+            companyName: document.getElementById('companyName').value,
+            exchangeRate: document.getElementById('exchangeRate').value,
+            defaultInterestRate: document.getElementById('defaultInterestRate').value,
+            sessionTimeout: document.getElementById('sessionTimeout').value,
+            maxLoginAttempts: document.getElementById('maxLoginAttempts').value,
+            githubToken: document.getElementById('githubToken').value,
+            emailNotifications: document.getElementById('emailNotifications').checked,
+            smsNotifications: document.getElementById('smsNotifications').checked,
+            loanDueAlerts: document.getElementById('loanDueAlerts').checked,
+            newAppAlerts: document.getElementById('newAppAlerts').checked
+        };
+        
+        localStorage.setItem('nkumbise_settings', JSON.stringify(settings));
+        
+        if (window.dashboard) {
+            window.dashboard.showSuccess('Settings saved successfully!');
+        }
+        
+        console.log('Settings saved:', settings);
+    }
+    
+    function updateProfile() {
+        const profile = {
+            fullName: document.getElementById('profileFullName').value,
+            email: document.getElementById('profileEmail').value,
+            phone: document.getElementById('profilePhone').value,
+            department: document.getElementById('profileDepartment').value
+        };
+        
+        // Update current user in session
+        const user = JSON.parse(sessionStorage.getItem('nkumbise_user') || '{}');
+        Object.assign(user, profile);
+        sessionStorage.setItem('nkumbise_user', JSON.stringify(user));
+        
+        if (window.dashboard) {
+            window.dashboard.currentUser = user;
+            window.dashboard.updateUserInfo();
+            window.dashboard.showSuccess('Profile updated successfully!');
+        }
+        
+        console.log('Profile updated:', profile);
+    }
+    
+    // Initialize role selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleOptions = document.querySelectorAll('.role-option');
+        roleOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                roleOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                
+                const role = this.dataset.role;
+                const usernameInput = document.getElementById('username');
+                const placeholders = {
+                    'admin': 'Enter admin username',
+                    'partner': 'Enter partner username',
+                    'accountant': 'Enter accountant username',
+                    'support': 'Enter support username'
+                };
+                
+                if (usernameInput && placeholders[role]) {
+                    usernameInput.placeholder = placeholders[role];
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>
