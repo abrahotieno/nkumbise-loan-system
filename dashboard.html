@@ -2133,7 +2133,6 @@
             </div>
         `;
     }
-    
     function saveSettings() {
         const settings = {
             companyName: document.getElementById('companyName').value,
@@ -2201,7 +2200,30 @@
                 }
             });
         });
-    });
+    });<script>
+// Set GitHub token from localStorage settings
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if token exists in settings
+    const settings = localStorage.getItem('nkumbise_settings');
+    if (settings) {
+        try {
+            const parsed = JSON.parse(settings);
+            if (parsed.githubToken && window.nkumbiseAPI) {
+                window.nkumbiseAPI.setToken(parsed.githubToken);
+                console.log('GitHub token set from settings');
+            }
+        } catch (e) {
+            console.log('No token in settings');
+        }
+    }
+    
+    // Or use default token for testing
+    const defaultToken = 'YOUR_GITHUB_TOKEN_HERE'; // Replace with your actual token
+    if (window.nkumbiseAPI && defaultToken && defaultToken !== 'YOUR_GITHUB_TOKEN_HERE') {
+        window.nkumbiseAPI.setToken(defaultToken);
+        console.log('GitHub token set from default');
+    }
+});
     </script>
 </body>
 </html>
