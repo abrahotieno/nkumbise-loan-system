@@ -709,4 +709,218 @@ input[type="number"] {
     .cta h2 {
         font-size: 2.2rem;
     }
+}/* ====== TZS CURRENCY SPECIFIC STYLES ====== */
+
+.currency-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #2d5be3, #1a49c4);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+.currency-converter {
+    background: rgba(45, 91, 227, 0.05);
+    border: 1px solid rgba(45, 91, 227, 0.2);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.currency-rate {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.currency-rate:last-child {
+    border-bottom: none;
+}
+
+.currency-flag {
+    display: inline-block;
+    width: 24px;
+    height: 16px;
+    margin-right: 0.5rem;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+
+.tzs-flag {
+    background: linear-gradient(135deg, #1eb53a, #00a651);
+    position: relative;
+}
+
+.tzs-flag::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 33.33%;
+    height: 100%;
+    background: #00a3dd;
+}
+
+.tzs-flag::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 33.33%;
+    height: 100%;
+    background: #000;
+}
+
+.usd-flag {
+    background: linear-gradient(135deg, #3c3b6e, #b22234);
+}
+
+.amount-tzs {
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.amount-usd {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.currency-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+}
+
+.currency-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #1a1a2e;
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 0.5rem;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.currency-tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1a1a2e transparent transparent transparent;
+}
+
+.currency-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Print styles for TZS */
+@media print {
+    .amount-usd {
+        display: none !important;
+    }
+    
+    .currency-note,
+    .currency-info,
+    .currency-tooltip {
+        display: none !important;
+    }
+    
+    .amount-tzs::after {
+        content: " (Tanzanian Shillings)";
+        font-size: 0.8rem;
+        color: #666;
+    }
+}
+
+/* Dark mode support for currency */
+@media (prefers-color-scheme: dark) {
+    .currency-converter {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .currency-rate {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* Responsive currency display */
+@media (max-width: 768px) {
+    .currency-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+    }
+    
+    .currency-converter {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    .currency-tooltip .tooltip-text {
+        width: 160px;
+        margin-left: -80px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Animation for currency updates */
+@keyframes currencyUpdate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.currency-updated {
+    animation: currencyUpdate 0.3s ease;
+}
+
+/* Exchange rate display */
+.exchange-rate-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(45, 91, 227, 0.1);
+    border-radius: 50px;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.exchange-rate-display i {
+    font-size: 1rem;
+}
+
+/* TZS input styling */
+input[data-currency="TZS"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232d5be3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='12' y1='8' x2='12' y2='16'%3E%3C/line%3E%3Cline x1='8' y1='12' x2='16' y2='12'%3E%3C/line%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 16px;
+    padding-right: 3rem;
+}
+
+input[data-currency="TZS"]:focus {
+    border-color: #2d5be3;
+    box-shadow: 0 0 0 3px rgba(45, 91, 227, 0.1);
 }
