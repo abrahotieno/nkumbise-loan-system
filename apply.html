@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apply for Loan - Nkumbise Investment</title>
+    <title>Apply for Loan - Nkumbise Investment Tanzania</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
@@ -158,6 +158,22 @@
             margin-top: 0.5rem;
         }
         
+        .currency-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(45, 91, 227, 0.1);
+            padding: 1rem;
+            border-radius: var(--radius);
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        
+        .currency-info i {
+            font-size: 1.2rem;
+        }
+        
         .loan-summary {
             background: var(--light-color);
             padding: 1.5rem;
@@ -177,6 +193,13 @@
             font-size: 1.2rem;
             font-weight: 600;
             color: var(--primary-color);
+        }
+        
+        .usd-equivalent {
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            text-align: right;
+            margin-top: 2px;
         }
         
         .form-navigation {
@@ -288,6 +311,13 @@
             border-bottom: none;
         }
         
+        .detail-usd {
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            text-align: right;
+            margin-top: 2px;
+        }
+        
         .whatsapp-notice {
             background: rgba(37, 211, 102, 0.1);
             border: 2px solid #25d366;
@@ -304,6 +334,38 @@
             font-size: 2rem;
         }
         
+        .amount-input {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .currency-symbol {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            min-width: 50px;
+        }
+        
+        .amount-slider {
+            flex: 1;
+        }
+        
+        .amount-display {
+            width: 150px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .amount-range {
+            display: flex;
+            justify-content: space-between;
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
         @media (max-width: 768px) {
             .application-container {
                 margin: -20px 20px 40px;
@@ -315,6 +377,15 @@
             
             .form-row {
                 grid-template-columns: 1fr;
+            }
+            
+            .amount-input {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .amount-display {
+                width: 100%;
             }
         }
     </style>
@@ -342,8 +413,8 @@
     <!-- Application Header -->
     <header class="application-header">
         <div class="container">
-            <h1>Apply for a Loan</h1>
-            <p>Complete this simple form to get started. We'll contact you within 24 hours.</p>
+            <h1>Apply for a Loan in TZS</h1>
+            <p>Get business capital in Tanzanian Shillings with transparent terms</p>
         </div>
     </header>
 
@@ -383,7 +454,7 @@
                             <label class="form-label required" for="phoneNumber">Phone Number</label>
                             <input type="tel" id="phoneNumber" class="form-control" required
                                    placeholder="+255 XXX XXX XXX">
-                            <span class="form-help">We'll contact you on this number</span>
+                            <span class="form-help">We'll contact you on this number via WhatsApp</span>
                         </div>
                     </div>
                     
@@ -395,9 +466,26 @@
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label required" for="location">Location/Town</label>
+                            <label class="form-label required" for="location">Location/City</label>
                             <input type="text" id="location" class="form-control" required
-                                   placeholder="Where are you located?">
+                                   placeholder="e.g., Dar es Salaam, Arusha, Mwanza">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label required" for="businessType">Business Type</label>
+                            <select id="businessType" class="form-control form-select" required>
+                                <option value="">Select business type</option>
+                                <option value="retail">Retail Shop</option>
+                                <option value="wholesale">Wholesale Business</option>
+                                <option value="agriculture">Agriculture/Farming</option>
+                                <option value="transport">Transport Services</option>
+                                <option value="restaurant">Restaurant/Cafe</option>
+                                <option value="manufacturing">Small Manufacturing</option>
+                                <option value="services">Service Business</option>
+                                <option value="other">Other</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -415,41 +503,50 @@
                 <div class="form-section" id="section2">
                     <h2 class="section-title">Loan Details</h2>
                     
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label required" for="loanAmount">Loan Amount Needed</label>
-                            <div class="amount-input">
-                                <span class="currency">$</span>
-                                <input type="range" id="amountSlider" min="500" max="5000" step="100" value="1000">
-                                <input type="number" id="loanAmount" class="form-control" min="500" max="5000" value="1000" required>
-                            </div>
-                            <div class="amount-range">
-                                <span>$500</span>
-                                <span>$5,000</span>
-                            </div>
+                    <div class="currency-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>All amounts in Tanzanian Shillings (TZS). 1 USD ≈ 2,500 TZS</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label required" for="loanAmount">Loan Amount Needed</label>
+                        <div class="amount-input">
+                            <span class="currency-symbol">TZS</span>
+                            <input type="range" id="amountSlider" class="amount-slider" 
+                                   min="500000" max="5000000" step="100000" value="1000000">
+                            <input type="number" id="loanAmount" class="form-control amount-display" 
+                                   min="500000" max="5000000" value="1000000" required>
                         </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label required" for="repaymentPeriod">Repayment Period</label>
-                            <select id="repaymentPeriod" class="form-control form-select" required>
-                                <option value="30">30 Days</option>
-                                <option value="60">60 Days</option>
-                                <option value="90">90 Days</option>
-                            </select>
+                        <div class="amount-range">
+                            <span>TZS 500,000</span>
+                            <span>TZS 5,000,000</span>
+                        </div>
+                        <div class="usd-equivalent" id="amountUsd">
+                            ≈ $400 USD
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
+                            <label class="form-label required" for="repaymentPeriod">Repayment Period</label>
+                            <select id="repaymentPeriod" class="form-control form-select" required>
+                                <option value="30">30 Days (30% interest)</option>
+                                <option value="60">60 Days (60% interest)</option>
+                                <option value="90">90 Days (90% interest)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
                             <label class="form-label required" for="loanPurpose">Loan Purpose</label>
                             <select id="loanPurpose" class="form-control form-select" required>
                                 <option value="">Select purpose</option>
-                                <option value="business">Business Expansion</option>
-                                <option value="education">Education</option>
-                                <option value="emergency">Emergency</option>
-                                <option value="medical">Medical Expenses</option>
-                                <option value="agriculture">Agriculture</option>
-                                <option value="other">Other</option>
+                                <option value="stock">Buy Stock/Inventory</option>
+                                <option value="equipment">Buy Equipment</option>
+                                <option value="expansion">Business Expansion</option>
+                                <option value="working">Working Capital</option>
+                                <option value="rent">Pay Rent/Lease</option>
+                                <option value="emergency">Business Emergency</option>
+                                <option value="other">Other Business Need</option>
                             </select>
                         </div>
                     </div>
@@ -459,15 +556,31 @@
                         <h3 style="margin-bottom: 1rem;">Loan Summary</h3>
                         <div class="summary-row">
                             <span>Loan Amount</span>
-                            <strong id="summaryAmount">$1,000</strong>
+                            <div>
+                                <strong id="summaryAmount">TZS 1,000,000</strong>
+                                <div class="usd-equivalent" id="summaryAmountUsd">≈ $400 USD</div>
+                            </div>
                         </div>
                         <div class="summary-row">
                             <span>Interest (1% daily)</span>
-                            <strong id="summaryInterest">$300</strong>
+                            <div>
+                                <strong id="summaryInterest">TZS 300,000</strong>
+                                <div class="usd-equivalent" id="summaryInterestUsd">≈ $120 USD</div>
+                            </div>
                         </div>
                         <div class="summary-row total">
                             <span>Total Repayment</span>
-                            <strong id="summaryTotal">$1,300</strong>
+                            <div>
+                                <strong id="summaryTotal">TZS 1,300,000</strong>
+                                <div class="usd-equivalent" id="summaryTotalUsd">≈ $520 USD</div>
+                            </div>
+                        </div>
+                        <div class="summary-row" style="border-bottom: none; padding-top: 0.5rem;">
+                            <span>Daily Payment</span>
+                            <div>
+                                <strong id="summaryDaily">TZS 43,333/day</strong>
+                                <div class="usd-equivalent" id="summaryDailyUsd">≈ $17 USD/day</div>
+                            </div>
                         </div>
                     </div>
                     
@@ -478,18 +591,19 @@
                             <label class="form-label" for="collateralType">Collateral Type</label>
                             <select id="collateralType" class="form-control form-select">
                                 <option value="">Select if applicable</option>
-                                <option value="land">Land/Property</option>
-                                <option value="vehicle">Vehicle</option>
-                                <option value="electronics">Electronics</option>
-                                <option value="machinery">Machinery</option>
-                                <option value="other">Other</option>
+                                <option value="land">Land/Property Title</option>
+                                <option value="vehicle">Vehicle Logbook</option>
+                                <option value="machinery">Business Machinery</option>
+                                <option value="inventory">Business Inventory</option>
+                                <option value="other">Other Asset</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label" for="collateralValue">Estimated Value</label>
+                            <label class="form-label" for="collateralValue">Estimated Value (TZS)</label>
                             <input type="number" id="collateralValue" class="form-control"
-                                   placeholder="$0">
+                                   placeholder="0">
+                            <div class="usd-equivalent" id="collateralUsd"></div>
                         </div>
                     </div>
                     
@@ -525,28 +639,45 @@
                             <strong id="reviewLocation">Dar es Salaam</strong>
                         </div>
                         <div class="detail-row">
+                            <span>Business Type</span>
+                            <strong id="reviewBusiness">Retail Shop</strong>
+                        </div>
+                        <div class="detail-row">
                             <span>Loan Amount</span>
-                            <strong id="reviewAmount">$1,000</strong>
+                            <div>
+                                <strong id="reviewAmount">TZS 1,000,000</strong>
+                                <div class="detail-usd" id="reviewAmountUsd">≈ $400 USD</div>
+                            </div>
                         </div>
                         <div class="detail-row">
                             <span>Repayment Period</span>
                             <strong id="reviewPeriod">30 Days</strong>
                         </div>
                         <div class="detail-row">
-                            <span>Total Repayment</span>
-                            <strong id="reviewTotal" class="highlight">$1,300</strong>
+                            <span>Loan Purpose</span>
+                            <strong id="reviewPurpose">Buy Stock/Inventory</strong>
                         </div>
                         <div class="detail-row">
-                            <span>Loan Purpose</span>
-                            <strong id="reviewPurpose">Business</strong>
+                            <span>Total Repayment</span>
+                            <div>
+                                <strong id="reviewTotal" class="highlight">TZS 1,300,000</strong>
+                                <div class="detail-usd" id="reviewTotalUsd">≈ $520 USD</div>
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <span>Daily Payment</span>
+                            <div>
+                                <strong id="reviewDaily">TZS 43,333</strong>
+                                <div class="detail-usd" id="reviewDailyUsd">≈ $17 USD/day</div>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="whatsapp-notice">
                         <i class="fab fa-whatsapp"></i>
                         <div>
-                            <strong>Important:</strong> We'll contact you via WhatsApp on the phone number provided.
-                            Please ensure your WhatsApp is active.
+                            <strong>Important Notice:</strong> We'll contact you via WhatsApp on the phone number provided.
+                            Please ensure your WhatsApp is active and you can receive calls.
                         </div>
                     </div>
                     
@@ -568,7 +699,7 @@
                 </div>
                 
                 <h2>Application Submitted Successfully!</h2>
-                <p>Thank you for applying with Nkumbise Investment.</p>
+                <p>Thank you for applying with Nkumbise Investment Tanzania.</p>
                 
                 <div class="confirmation-details">
                     <div class="detail-row">
@@ -583,6 +714,10 @@
                         <span>Submitted On</span>
                         <strong id="confirmDate">December 30, 2024 - 14:45</strong>
                     </div>
+                    <div class="detail-row">
+                        <span>Expected Contact</span>
+                        <strong>Within 24 hours via WhatsApp</strong>
+                    </div>
                 </div>
                 
                 <div class="whatsapp-notice">
@@ -590,9 +725,9 @@
                     <div>
                         <strong>What happens next?</strong><br>
                         1. We'll contact you within 24 hours via WhatsApp<br>
-                        2. Prepare your ID and any documents<br>
-                        3. Meet our agent for verification<br>
-                        4. Receive funds upon approval
+                        2. Prepare your business documents and ID<br>
+                        3. Meet our local agent for verification<br>
+                        4. Receive TZS funds upon approval
                     </div>
                 </div>
                 
@@ -603,6 +738,10 @@
                     <a href="index.html" class="btn-secondary">
                         <i class="fas fa-home"></i> Return Home
                     </a>
+                </div>
+                
+                <div style="margin-top: 2rem; color: var(--gray-color); font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i> All loan amounts in Tanzanian Shillings (TZS)
                 </div>
             </div>
         </div>
@@ -617,7 +756,7 @@
                         <i class="fas fa-hand-holding-usd"></i>
                         <span>Nkumbise<span class="highlight">Investment</span></span>
                     </a>
-                    <p>Fast, transparent loans with clear terms. Empowering your financial goals.</p>
+                    <p>Fast, transparent loans in Tanzanian Shillings. Empowering Tanzanian businesses.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-whatsapp"></i></a>
                         <a href="#"><i class="fab fa-facebook"></i></a>
@@ -637,15 +776,16 @@
                 <div class="footer-contact">
                     <h4>Contact Us</h4>
                     <p><i class="fas fa-phone"></i> +255 XXX XXX XXX</p>
-                    <p><i class="fas fa-envelope"></i> info@nkumbiseinvestment.com</p>
+                    <p><i class="fas fa-envelope"></i> info@nkumbise.co.tz</p>
                     <p><i class="fas fa-map-marker-alt"></i> Tanzania</p>
                     <p><i class="fas fa-clock"></i> Mon-Fri: 8AM-6PM</p>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2024 Nkumbise Investment. All rights reserved.</p>
-                <p>1% daily interest rate. Terms and conditions apply.</p>
+                <p>&copy; 2024 Nkumbise Investment Tanzania. All rights reserved.</p>
+                <p>1% daily interest rate. Loans in Tanzanian Shillings (TZS). Terms and conditions apply.</p>
+                <p style="font-size: 0.8rem; margin-top: 5px; opacity: 0.7;">USD amounts shown for reference only (1 USD ≈ 2,500 TZS)</p>
             </div>
         </div>
     </footer>
