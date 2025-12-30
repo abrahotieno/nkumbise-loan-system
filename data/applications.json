@@ -1,17 +1,1 @@
-[
-  {
-    "id": "APP20241230001",
-    "customerName": "John Doe",
-    "phone": "+255123456789",
-    "email": "john@example.com",
-    "amount": 1500,
-    "purpose": "Business",
-    "days": 30,
-    "collateralType": "Land",
-    "collateralValue": 2000,
-    "status": "pending",
-    "appliedAt": "2024-12-30T10:30:00Z",
-    "notes": "",
-    "assignedTo": null
-  }
-]
+[]
